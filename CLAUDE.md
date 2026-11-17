@@ -186,6 +186,8 @@ Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value st
 - **P5** Solace queue delivery mode: RDP (push over REST; assess REST outgoing connections ÷ next step's response time, E, vs class REST/RDP limits) or pull (AEM adapter / consumer: consumers × nodes). Open: may RDP push to an iFlow HTTP sender as well as APIM?
 - **P6** Source link on every fact: evidence register (plan below). Research saved in `docs/source-references.md`.
 
+- **P7** Influx bands must follow the scope set on the Source. Today the band edges (e.g. under 5k) are the same whether the number is global or for one typical country. Planned: when the volume is for one typical country, scale the edges by that country's share of the global weight (edge_country = edge_global × size factor ÷ total country weight), so "under 5k" for a small country in a 40-country rollout becomes a much smaller band. Show both: the country band and its ≈ global equivalent. Pointer to confirm: the day→hour conversion of the edges should use the combined multi-region curve (lower peak share), not one region's curve.
+
 ### P6 plan: evidence register vs the app's benchmark
 - One register entry per settings key (and per class-table value): evidence value, confidence, primary URL + section, short snippet, date checked, status (confirmed · corrected · unverified · design choice).
 - The **benchmark** is the value set in the app (saved setting or this-run override). Wherever a limit is used (tile detail, Why, settings, Guide), show: app value · evidence value · match or "differs from evidence" · confidence · "Open source ↗".
