@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow Check — async interface volume</title>
+<style>
+:root{--bg:#f4f4f0;--card:#fff;--ink:#1c1c1a;--mute:#6a6a64;--line:#e0dfd9;--acc:#3451c7;--accbg:#edf0fd;
+--fit:#2e8b57;--fitbg:#e2f3e6;--ad:#c27c0e;--adbg:#fbefd8;--be:#c62f26;--bebg:#fde8e6;--idle:#b9b8b1;--idlebg:#fafaf7}
+@media (prefers-color-scheme:dark){:root{--bg:#131312;--card:#1f1f1d;--ink:#ecebe6;--mute:#a2a19b;--line:#34332f;--acc:#93a8ff;--accbg:#232842;--fit:#6fcf97;--fitbg:#1b3022;--ad:#f2b55a;--adbg:#382c15;--be:#f28b82;--bebg:#3a1d1c;--idle:#5a5953;--idlebg:#1a1a18}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:16px 14px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:22px;margin:0}
+.sub{color:var(--mute);margin:2px 0 0;font-size:14px}
+.tools{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--acc)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:none;padding:7px 14px;font-weight:600;color:var(--mute);cursor:pointer;font-size:13px}
+.seg button.on{background:var(--acc);color:#fff}
+.gear{width:34px;height:34px;border-radius:50%;border:1px solid transparent;background:none;color:var(--mute);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.55}
+.gear:hover{opacity:1;border-color:var(--line);background:var(--card)}
+.gear svg{width:18px;height:18px}
+.gear.mod{opacity:1;color:var(--acc)}
+
+/* stage */
+.stage{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;margin-top:14px;padding:6px 6px 0}
+.scroller{overflow-x:auto}
+@media(max-width:640px){svg.flow{min-width:720px}}
+.hint{position:absolute;left:16px;top:12px;font-size:12.5px;color:var(--mute);pointer-events:none}
+svg.flow{width:100%;height:auto;display:block;user-select:none}
+.hit{cursor:pointer}
+.hit:hover .ring,.hit:focus .ring{stroke-width:5}
+.hit:focus{outline:none}
+.nodeLbl{font-size:17px;font-weight:700;fill:var(--ink);text-anchor:middle}
+.nodeSub{font-size:12.5px;fill:var(--mute);text-anchor:middle}
+.zoneTxt{font-size:12.5px;font-weight:800;text-anchor:middle}
+.glyph{stroke:var(--ink);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+@keyframes flow{to{stroke-dashoffset:-48}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dots{animation:flow linear infinite}
+.spin{transform-box:fill-box;transform-origin:center;animation:spin linear infinite}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.dots,.spin,.pulse{animation:none}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);padding:6px 12px 12px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;background:var(--c)}
+
+/* attribute card */
+.pop{position:absolute;z-index:20;width:340px;max-width:calc(100% - 16px);background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:14px 16px 12px}
+.pop h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
+.pop .why{font-size:12.5px;color:var(--mute);margin:3px 0 8px}
+.pop .x{position:absolute;right:10px;top:8px;border:0;background:none;font-size:20px;color:var(--mute);cursor:pointer}
+.fld{margin:12px 0}
+.fld .lab{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:600;gap:8px}
+.fld .val{font-weight:800;color:var(--acc);font-variant-numeric:tabular-nums;white-space:nowrap}
+.fld .sm{font-size:11.5px;color:var(--mute);font-weight:400}
+input[type=range]{width:100%;accent-color:var(--acc);margin:6px 0 0}
+.ticks{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mute);margin-top:-2px;padding:0 2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:13px}
+.chip.on{border-color:var(--acc);background:var(--accbg);color:var(--acc);font-weight:700}
+.numrow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
+.numrow span{white-space:nowrap}
+.numrow label{flex:1}
+.numrow input{width:100px;padding:6px 8px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:15px;text-align:right;font-weight:700}
+.numrow input:focus{border-color:var(--acc);outline:none}
+.numrow select{padding:6px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:14px}
+.chip .sm{font-size:11px;color:var(--mute);font-weight:400}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--acc)}
+.verdictBox{border-radius:10px;padding:8px 10px;font-size:13px;margin-top:10px}
+.verdictBox.F{background:var(--fitbg)}.verdictBox.A{background:var(--adbg)}.verdictBox.B{background:var(--bebg)}
+.verdictBox b{display:block}
+@media(max-width:640px){.pop{position:fixed;left:8px!important;right:8px;top:auto!important;bottom:8px;width:auto;max-height:72vh;overflow:auto}}
+
+/* results */
+.res{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:820px){.res{grid-template-columns:1fr}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.box h3{margin:0 0 8px;font-size:15px}
+.big{display:flex;align-items:center;gap:12px}
+.pill{font-weight:800;border-radius:999px;padding:6px 14px;font-size:15px;white-space:nowrap}
+.pill.F{background:var(--fitbg);color:var(--fit)}.pill.A,.pill.G{background:var(--adbg);color:var(--ad)}.pill.B{background:var(--bebg);color:var(--be)}
+.todo{padding-left:0;list-style:none;margin:10px 0 0}
+.todo li{margin:7px 0;font-size:14px;cursor:pointer}
+.z{font-size:11px;font-weight:800;padding:1px 7px;border-radius:4px;margin-right:6px}
+.z.F{background:var(--fitbg);color:var(--fit)}.z.A{background:var(--adbg);color:var(--ad)}.z.B{background:var(--bebg);color:var(--be)}
+.nums{width:100%;border-collapse:collapse;font-size:13px}
+.nums td{padding:5px 2px;border-top:1px solid var(--line)}
+.nums td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:8px}
+.note{color:var(--mute);font-size:12px}
+a{color:var(--acc)}
+
+/* settings */
+.modalBg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:30px 10px;overflow:auto}
+.modal{background:var(--card);border-radius:16px;max-width:760px;width:100%;padding:16px 18px;border:1px solid var(--line)}
+.modal h2{margin:0;font-size:18px}
+.modal h4{margin:16px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}
+.modal table{width:100%;border-collapse:collapse;font-size:13px}
+.modal td{border-top:1px solid var(--line);padding:5px 4px;vertical-align:middle}
+.modal input{width:96px;padding:5px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right;font-size:13.5px}
+.modal tr.chg td{background:var(--adbg)}
+.conf{font-weight:800;font-size:11px;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><h1>Flow Check</h1><p class="sub">Async interface, end to end. Tap any part of the flow and set what you know.</p></div>
+ <div class="tools">
+  <div class="seg"><button id="vNow" class="on">Today</button><button id="vY3">In 3 years</button></div>
+  <button class="btn" id="ex">Example</button><button class="btn" id="clr">Reset</button>
+  <button class="gear" id="gear" title="Technical settings" aria-label="Technical settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+ </div>
+</header>
+
+<div class="stage" id="stage">
+ <div class="hint" id="hint">Start anywhere: tap the source, the message, the pipes, the middleware or the target.</div>
+ <div class="scroller"><svg class="flow" id="svg" viewBox="0 0 1000 380" role="img" aria-label="Async flow: source, influx, middleware, delivery, target"></svg></div>
+ <div class="legend"><span style="--c:var(--idle)">not set yet</span><span style="--c:var(--fit)">Fit — works as designed</span><span style="--c:var(--ad)">Adapt — works with a design change</span><span style="--c:var(--be)">Beyond — wrong fit here</span></div>
+</div>
+
+<div class="res">
+ <div class="box">
+  <h3>Verdict</h3>
+  <div class="big"><span class="pill" id="ovPill">–</span><div id="ovText" class="note"></div></div>
+  <ul class="todo" id="todo"></ul>
+ </div>
+ <div class="box">
+  <h3>The flow in numbers</h3>
+  <table class="nums" id="nums"></table>
+  <p class="note" style="margin-top:8px">Rough estimates from your settings. For the full calculation trail, use the <a href="https://claude.ai/artifact/6j9YwTD8L8CpzbSSQBgxoU">Interface Envelope Evaluator</a>.</p>
+ </div>
+</div>
+</main>
+
+<script>
+/* ================= technical settings (hidden behind the gear) ================= */
+const SET_DEF=[
+ {g:"Zoning",items:[
+  ["comfort","Comfort level (Fit up to this share of a capacity)","%",70,"E"],
+  ["rateOK","Busiest-hour records still comfortable","/h",50000,"E"],
+  ["rateMax","Busiest-hour records above which single messages are wrong","/h",500000,"E"],
+  ["ownRoad","Mass-event rate that needs its own road","/h",50000,"E"],
+  ["peakUplift","Uplift on peak days (month-end, campaigns)","×",1.5,"E"]]},
+ {g:"SAP BTP Integration Suite",items:[
+  ["ciCap","iFlow capacity in process at once, for this interface","msgs",50,"E"],
+  ["tThin","Thin iFlow step when the work runs in Azure","s/record",1,"E"],
+  ["guardMB","iFlow sender body guard","MB",40,"B"],
+  ["slice","Metering slice","KB",250,"A"]]},
+ {g:"Azure and event brokers",items:[
+  ["azCap","Azure processing in parallel (plan scale-out)","msgs",1000,"E"],
+  ["sbMB","Service Bus entity max message size","MB",1,"A"],
+  ["solSoft","Event broker comfortable message size","MB",10,"E"],
+  ["solMax","Event broker guaranteed message cap (Solace class)","MB",30,"A"]]},
+ {g:"Answers translated into numbers",items:[
+  ["ratio_user","Busiest ÷ average hour when people create the data","×",4,"E"],
+  ["ratio_job","Busiest ÷ average hour when jobs create the data","×",12,"E"],
+  ["ratio_steady","Busiest ÷ average hour for a steady stream","×",2,"E"],
+  ["t_w1","Time per record: pass-through","s",0.5,"E"],
+  ["t_w2","Time per record: some checks","s",5,"E"],
+  ["t_w3","Time per record: heavy orchestration","s",90,"E"],
+  ["cap_few","Target parallel capacity: a few (e.g. S/4)","calls",10,"E"],
+  ["cap_dozens","Target parallel capacity: dozens","calls",50,"E"],
+  ["cap_hundreds","Target parallel capacity: hundreds","calls",500,"E"],
+  ["tgtT","Target time to post one record","s",0.5,"E"]]},
+ {g:"Message size calculation",items:[
+  ["nameLen","Average field name length","chars",12,"E"],
+  ["envB","Envelope per message (root, namespaces, metadata)","bytes",400,"E"],
+  ["idocSeg","IDoc segment record (1000 data + 63 admin)","bytes",1063,"A"],
+  ["idocCtl","IDoc control record (EDI_DC40)","bytes",524,"A"],
+  ["idocFps","Fields that fit in one IDoc segment (approx.)","fields",25,"E"],
+  ["b64","Base64 growth for files inside JSON or XML","×",1.37,"A"]]},
+ {g:"Target",items:[
+  ["batchMax","Records per small batch call ($batch)","records",1000,"C"],
+  ["massMax","Records above which only bulk or file works","records",50000,"C"],
+  ["smallF","Speed-up of small batches vs single calls","×",20,"E"],
+  ["bulkF","Speed-up of bulk API or file vs single calls","×",200,"E"]]}
+];
+const S={},SM={};SET_DEF.forEach(g=>g.items.forEach(([k,l,u,d,c])=>{S[k]=d;SM[k]={l,u,d,c}}));
+try{const s=JSON.parse(localStorage.getItem("fc_set")||"null");if(s)Object.keys(s).forEach(k=>{if(k in S)S[k]=+s[k]})}catch(e){}
+const saveSet=()=>{try{const o={};Object.keys(S).forEach(k=>{if(S[k]!==SM[k].d)o[k]=S[k]});localStorage.setItem("fc_set",JSON.stringify(o))}catch(e){}};
+
+/* ================= inputs ================= */
+const DEF={
+ countries:20,who:"user",event:"none",massRec:300000,massWin:4,growth:3,touched:{},absorb:"few",sizeVal:50,sizeUnit:"KB",
+ rateMode:"total",rate:20000,perCountry:500,ratio:4,queue:true,
+ kind:"doc",sizeKB:50,maxF:10,rpm:1,sizeMode:"direct",fmtType:"json",struct:"hdr",hdrFields:20,lineFields:30,linesT:50,linesM:2000,valLen:12,fileKB:500,
+ work:"w2",secs:5,where:"btp",
+ send:"one",fresh:"min",
+ tgtCap:10,tgtT:0.5
+};
+const EXAMPLE=Object.assign({},DEF,{touched:{src:1,msg:1,inf:1,mid:1,del:1,tgt:1},countries:40,event:"mass",perCountry:500,rateMode:"perCountry",sizeVal:50,sizeUnit:"KB",maxF:100});
+let I=JSON.parse(JSON.stringify(DEF));
+try{const s=JSON.parse(localStorage.getItem("fc_in")||"null");if(s)I=Object.assign(I,s)}catch(e){}
+const saveIn=()=>{try{localStorage.setItem("fc_in",JSON.stringify(I))}catch(e){}};
+let view="now",open=null;
+
+/* ================= helpers ================= */
+const nice=v=>{if(v<=0)return 0;const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p};
+const fmt=v=>!isFinite(v)?"–":v>=1e6?(v/1e6).toFixed(v>=1e7?0:1).replace(/\.0$/,"")+"M":v>=1e4?Math.round(v/1e3)+"k":v>=1000?(v/1e3).toFixed(1).replace(/\.0$/,"")+"k":v>=10?Math.round(v)+"":v>=1?(+v.toFixed(1))+"":(+v.toFixed(2))+"";
+const fmtKB=kb=>kb>=1024*1024?fmt(kb/1048576)+" GB":kb>=1024?(+(kb/1024).toFixed(kb>=10240?0:1))+" MB":(+kb.toFixed(kb<10?1:0))+" KB";
+const fmtS=s=>s>=60?(+(s/60).toFixed(1))+" min":(+s.toFixed(s<1?2:1))+" s";
+
+/* ================= message size derivation ================= */
+function deriveSize(){
+ const v=I.valLen,nm=S.nameLen,f=I.fmtType,lines=I.struct==="hdr";
+ const hf=I.kind==="status"?Math.min(I.hdrFields,15):I.hdrFields,lf=I.lineFields;
+ let perField,recOv,hdrB,lineB,envB=S.envB,note;
+ if(f==="json"){perField=nm+v+6;recOv=3;note=`"name":"value", = name ${nm} + value ${v} + 6 quotes, colon, comma`;}
+ else if(f==="xml"){perField=2*nm+5+v;recOv=2*nm+5;note=`<Name>value</Name> = 2 × name ${nm} + value ${v} + 5 brackets`;}
+ else if(f==="csv"){perField=v+1;recOv=2;envB=(lines?lf:hf)*(nm+1);note=`value ${v} + 1 delimiter; one header row of field names`;}
+ else{perField=null;note=`fixed 1,063-byte segments, ~${S.idocFps} fields each, plus a ${S.idocCtl}-byte control record`;}
+ if(f==="idoc"){
+  const segH=Math.max(1,Math.ceil(hf/S.idocFps)),segL=Math.max(1,Math.ceil(lf/S.idocFps));
+  hdrB=segH*S.idocSeg;lineB=segL*S.idocSeg;envB=S.idocCtl;
+ }else{hdrB=hf*perField+recOv;lineB=lf*perField+recOv;}
+ const file=I.kind==="file"?I.fileKB*1024*((f==="json"||f==="xml")?S.b64:1):0;
+ const typ=envB+hdrB+(lines?I.linesT*lineB:0)+file;
+ const big=envB+hdrB+(lines?I.linesM*lineB:0)+file;
+ return {perField,hdrB,lineB,envB,file,typB:typ,bigB:big,note,lines};
+}
+function sizeInfo(){
+ if(I.sizeMode==="calc"){const d=deriveSize();return {typKB:d.typB/1024,maxF:Math.max(1,d.bigB/d.typB),d};}
+ return {typKB:I.kind==="status"?Math.min(I.sizeKB,5):I.sizeKB,maxF:I.maxF};
+}
+const fmtB=b=>b>=1048576?(+(b/1048576).toFixed(1))+" MB":b>=1024?(+(b/1024).toFixed(b>=10240?0:1))+" KB":Math.round(b)+" B";
+
+/* ================= engine ================= */
+function calc(y3){
+ I.ratio=S["ratio_"+I.who]||4;I.secs=S["t_"+I.work]||5;I.tgtCap=S["cap_"+I.absorb]||10;I.tgtT=S.tgtT;
+ I.sizeKB=Math.max(0.1,(+I.sizeVal||1)*(I.sizeUnit==="MB"?1024:1));
+ const g=y3?I.growth:1;
+ let Rrec=I.rateMode==="perCountry"?I.perCountry*I.countries:I.rate;
+ if(I.event==="peak")Rrec*=S.peakUplift;
+ Rrec*=g;
+ const rpm=Math.max(1,I.rpm);
+ const Rmsg=Rrec/rpm, avgRec=Rrec/I.ratio;
+ const sz=sizeInfo();
+ const recKB=sz.typKB;
+ I._maxF=sz.maxF;
+ const fileKB=I.kind==="file"?0:0;
+ const msgKB=rpm*recKB, bigKB=(rpm-1)*recKB+recKB*sz.maxF;
+ const weight=Math.ceil(bigKB/S.slice);
+ const tWork=I.secs;
+ const tMid=I.where==="azure"?S.tThin:tWork;
+ const inflMid=Rrec/3600*tMid, drainMid=S.ciCap/tMid*3600;
+ const inflAz=I.where==="azure"?Rrec/3600*tWork:0;
+ const f=I.send==="small"?S.smallF:I.send==="bulk"?S.bulkF:1;
+ const tTgt=I.tgtT/f;
+ const inflTgt=Rrec/3600*tTgt, drainTgt=I.tgtCap/tTgt*3600;
+ const massRate=I.massRec/Math.max(.25,I.massWin);
+ return {g,Rrec,Rmsg,avgRec,rpm,recKB,msgKB,bigKB,weight,tWork,tMid,inflMid,drainMid,inflAz,tTgt,inflTgt,drainTgt,massRate,f};
+}
+function cap(infl,c,drain,avg,queue){
+ if(infl<=c*S.comfort/100)return ["F",`about ${fmt(infl)} in process at once, comfortable up to ${fmt(c*S.comfort/100)}`];
+ if(infl<=c)return ["A",`about ${fmt(infl)} in process at once, close to its limit of ${fmt(c)}`];
+ if(queue&&avg<=drain){const back=Math.max(0,infl/1*0); return ["A",`at peak it can't keep up (${fmt(infl)} at once vs ${fmt(c)}), but the queue holds the backlog and it clears after the peak`];}
+ return ["B",queue?`can't keep up even with the average load (needs ${fmt(infl)} at once, has ${fmt(c)})`:`can't keep up at peak (${fmt(infl)} at once vs ${fmt(c)}) and nothing holds the backlog`];
+}
+function evaluate(y3){
+ const n=calc(y3),Z={};
+ /* source */
+ {let z="F",w="Predictable load from the source.",fix="";
+  if(I.event==="peak"){z="A";w=`Peak days add about ${S.peakUplift}× on top of a normal busy hour.`;fix="Size the queue and capacity for the busiest day.";}
+  if(I.growth>5&&!y3&&z==="F"){z="A";w=`Growth of ×${I.growth} in 3 years moves this flow into a new range.`;fix="Check the 3-year view and design for it now.";}
+  if(I.event==="mass"){if(n.massRate>S.ownRoad){z="B";w=`A mass load of ${fmt(I.massRec)} records in ${I.massWin} h is ${fmt(n.massRate)} per hour, on top of daily traffic.`;fix="Give mass loads their own road: separate bulk channel, batch events or a data-load path.";}
+   else{z=z==="B"?"B":"A";w=`A mass load (${fmt(n.massRate)} per hour) shares the road with daily traffic.`;fix="Announce it, run it off-peak, or send it as batch events.";}}
+  Z.src={z,w,fix};}
+ /* message */
+ {const mbv=n.bigKB/1024;let z,w,fix="";
+  if(mbv<=S.sbMB){z="F";w=`Biggest message about ${fmtKB(n.bigKB)}: inside every limit.`;}
+  else if(mbv<=S.solSoft){z="A";w=`Biggest message about ${fmtKB(n.bigKB)}: above the ${S.sbMB} MB queue default, billed as ~${n.weight} BTP messages.`;fix=I.kind==="file"?"Send the file by claim check: store it, pass a reference.":"Raise the queue's size setting and send only what the target needs.";}
+  else if(mbv<=S.solMax){z="A";w=`Biggest message about ${fmtKB(n.bigKB)}: close to the broker's ${S.solMax} MB cap.`;fix="Streaming design, or claim check for the big ones.";}
+  else{z="B";w=`Biggest message about ${fmtKB(n.bigKB)}: more than the broker accepts (${S.solMax} MB).`;fix="Claim check, or a file / data-load path for large ones.";}
+  if(mbv>S.guardMB){z="B";w+=` Also above the iFlow guard of ${S.guardMB} MB.`;}
+  Z.msg={z,w,fix};}
+ /* influx */
+ {let z="F",w=`About ${fmt(n.Rrec)} records in the busiest hour${n.rpm>1?`, in ${fmt(n.Rmsg)} messages`:""}.`,fix="";
+  if(n.Rmsg>S.rateMax){z="B";w+=" Too many single messages for one shared flow.";fix="Group records into batch events, or use a data-load path.";}
+  else if(n.Rmsg>S.rateOK){z="A";w+=" Above the comfortable range.";fix=I.queue?"Consider grouping records into batch events.":"Put a queue in front, and consider batch events.";}
+  if(!I.queue&&I.ratio>10){z="B";w+=` Spikes (${I.ratio}× the average) hit the middleware with no queue in between.`;fix="Add a queue (Solace or Service Bus) on this connector.";}
+  else if(!I.queue&&I.ratio>3&&z==="F"){z="A";w+=` Rush hours (${I.ratio}× the average) arrive with no queue to smooth them.`;fix="Add a queue, or throttle at entry.";}
+  Z.inf={z,w,fix};}
+ /* middleware */
+ {let [z,t]=cap(n.inflMid,S.ciCap,n.drainMid,n.avgRec,I.queue),w=`BTP iFlow: ${t}.`,fix="";
+  if(z!=="F")fix=I.where==="btp"&&I.secs>S.tThin?"Move the heavy work to Azure, where it scales; keep the iFlow thin.":"Group records into batch events or reduce the work per record.";
+  if(I.where==="azure"){if(n.inflAz>S.azCap){z="B";w+=` Azure needs ${fmt(n.inflAz)} in parallel, beyond its ${fmt(S.azCap)}.`;fix="Scale out the Azure plan.";}
+   else if(n.inflAz>S.azCap*S.comfort/100){z=z==="B"?"B":"A";w+=` Azure is busy (${fmt(n.inflAz)} in parallel).`;fix=fix||"Scale out the Azure plan.";}
+   else w+=" Heavy work runs in Azure, which scales.";}
+  Z.mid={z,w,fix};}
+ /* delivery */
+ {let z="F",w={one:"One record per call to the target.",small:"Small batches to the target.",bulk:"Bulk or file load to the target."}[I.send],fix="";
+  if(n.rpm>S.massMax&&I.send!=="bulk"){z="B";w+=` But each message carries ${fmt(n.rpm)} records.`;fix="Use the target's bulk or file interface.";}
+  else if(n.rpm>1&&I.send==="one"){z=n.rpm>S.batchMax?"B":"A";w+=` But messages carry ${fmt(n.rpm)} records each, so they must be split again.`;fix="Send small batches or use a bulk interface.";}
+  else if(n.rpm>S.batchMax&&I.send==="small"){z="A";w+=` Messages carry ${fmt(n.rpm)} records, more than one batch call takes.`;fix="Chunk into batches of up to "+fmt(S.batchMax)+".";}
+  Z.del={z,w,fix};}
+ /* target */
+ {let [z,t]=cap(n.inflTgt,I.tgtCap,n.drainTgt,n.avgRec,I.queue),w=`Target: ${t}.`,fix="";
+  if(z!=="F")fix=I.send==="one"?"Send small batches or a bulk load, so each call carries more.":"Agree more parallel capacity with the target team, or spread the load.";
+  Z.tgt={z,w,fix};}
+ /* freshness: queue at peak vs seconds */
+ if(I.fresh==="sec"&&(Z.mid.z!=="F"||Z.tgt.z!=="F"||I.ratio>3)){const k=Z.tgt.z!=="F"?"tgt":"del";if(Z[k].z==="F")Z[k].z="A";Z[k].w+=" Data must appear within seconds, but at peak it waits in the queue.";Z[k].fix=Z[k].fix||"Agree realistic freshness at peak, or keep this flow off the shared path.";}
+ return {Z,n};
+}
+
+/* ================= stations ================= */
+const ST={
+ src:{name:"Source",sub:"reach · events · growth",x:110,y:215},
+ inf:{name:"Influx",sub:"how many · who · queue",x:305,y:215},
+ msg:{name:"Message",sub:"what · how big",x:305,y:95},
+ mid:{name:"Middleware",sub:"work per record · where",x:500,y:215},
+ del:{name:"Delivery",sub:"set on the Target",x:695,y:215},
+ tgt:{name:"Target",sub:"handover · capacity · speed",x:890,y:215}
+};
+const ORDER=["src","msg","inf","mid","del","tgt"];
+const colorOf=z=>z?{F:"var(--fit)",A:"var(--ad)",B:"var(--be)"}[z]:"var(--idle)";
+const bgOf=z=>z?{F:"var(--fitbg)",A:"var(--adbg)",B:"var(--bebg)"}[z]:"var(--idlebg)";
+const ZL={F:"Fit",A:"Adapt",B:"Beyond"};
+
+const GLYPH={
+ src:'<rect x="-20" y="-15" width="40" height="28" rx="4"/><path d="M-9 20h18M0 13v7"/><circle cx="-9" cy="-3" r="3.5"/><path d="M-1 -5h12M-1 1h8"/>',
+ mid:'<g class="spin" id="gearG"><circle r="7"/><path d="M0 -19v6M0 13v6M-19 0h6M13 0h6M-13.4 -13.4l4.2 4.2M9.2 9.2l4.2 4.2M-13.4 13.4l4.2 -4.2M9.2 -9.2l4.2 -4.2"/></g>',
+ tgt:'<ellipse cx="0" cy="-13" rx="16" ry="6"/><path d="M-16 -13v26c0 3.3 7.2 6 16 6s16-2.7 16-6v-26"/><path d="M-16 0c0 3.3 7.2 6 16 6s16-2.7 16-6"/>'
+};
+
+function draw(){
+ const y3=view==="y3",{Z,n}=evaluate(y3),T=I.touched;
+ const zz=k=>T[k]?Z[k].z:null;
+ const vol=Math.log10(Math.max(10,n.Rrec)); /* 1..7 */
+ const thick=Math.min(30,6+ (vol-1)*4);
+ const speed=Math.max(.35,3.2-(vol-1)*.45); /* s per cycle */
+ const gearSpeed=Math.max(.6,8-Math.min(7,n.inflMid/ (S.ciCap/7)));
+ const msgScale=Math.min(1.6,.7+Math.log10(Math.max(1,n.bigKB))/5);
+ const qFill=Math.min(1,n.inflMid/S.ciCap);
+ let s=`<defs><marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--idle)"/></marker></defs>`;
+ /* connectors */
+ const pipe=(k,x1,x2,y,th,label)=>{const c=colorOf(zz(k));return `<g class="hit" data-k="${k}" tabindex="0" role="button" aria-label="${ST[k].name}">
+  <rect x="${x1}" y="${y-28}" width="${x2-x1}" height="56" fill="transparent"/>
+  <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${bgOf(zz(k))}" stroke-width="${th+10}" stroke-linecap="round"/>
+  <line class="ring" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="${th}" stroke-linecap="round" opacity=".35"/>
+  <line class="dots" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="${Math.max(4,th*.45)}" stroke-dasharray="4 20" stroke-linecap="round" style="animation-duration:${speed}s"/>
+  <path d="M${x2+4} ${y-9} L${x2+16} ${y} L${x2+4} ${y+9}" fill="${c}"/>
+  <text class="nodeLbl" x="${(x1+x2)/2}" y="${y+46}" style="font-size:15px">${label}</text>
+  <text class="nodeSub" x="${(x1+x2)/2}" y="${y+63}">${ST[k].sub}</text>
+  ${T[k]?`<text class="zoneTxt" x="${(x1+x2)/2}" y="${y+81}" fill="${c}">${ZL[Z[k].z]}</text>`:""}</g>`;};
+ s+=pipe("inf",172,412,215,thick,"Influx");
+ s+=pipe("del",588,812,215,Math.max(6,thick*(I.send==="one"?1:I.send==="small"?.7:.5)),"Delivery");
+ /* queue on influx */
+ if(I.queue){const qx=380,qy=215;s+=`<g pointer-events="none"><rect x="${qx-16}" y="${qy-24}" width="32" height="48" rx="7" fill="var(--card)" stroke="${colorOf(zz("inf"))}" stroke-width="2.5"/>
+  <rect x="${qx-12}" y="${qy+20-40*qFill}" width="24" height="${40*qFill}" rx="4" fill="${colorOf(zz("mid"))}" opacity=".55" class="${qFill>.7?"pulse":""}"/>
+  <text x="${qx}" y="${qy-30}" text-anchor="middle" style="font-size:11px;fill:var(--mute);font-weight:700">queue</text></g>`;}
+ /* message icon above influx, with tether */
+ {const k="msg",{x,y}=ST.msg,c=colorOf(zz(k)),sc=msgScale;s+=`<line x1="${x}" y1="${y+30}" x2="${x}" y2="${195-thick/2}" stroke="var(--idle)" stroke-dasharray="3 4"/>
+  <g class="hit" data-k="msg" tabindex="0" role="button" aria-label="Message">
+  <g transform="translate(${x} ${y}) scale(${sc})"><rect class="ring" x="-30" y="-20" width="60" height="40" rx="6" fill="${bgOf(zz(k))}" stroke="${c}" stroke-width="3"/><path d="M-28 -17l28 20 28-20" fill="none" stroke="${c}" stroke-width="2.6" stroke-linejoin="round"/>
+  ${n.rpm>1?`<rect x="-26" y="-26" width="60" height="40" rx="6" fill="none" stroke="${c}" stroke-width="1.6" opacity=".5"/><rect x="-22" y="-32" width="60" height="40" rx="6" fill="none" stroke="${c}" stroke-width="1.2" opacity=".3"/>`:""}
+  ${I.kind==="file"?`<g transform="translate(22 6)"><rect x="-8" y="-10" width="16" height="20" rx="2" fill="var(--card)" stroke="${c}" stroke-width="2"/><path d="M-4 -3h8M-4 2h8" stroke="${c}" stroke-width="1.6"/></g>`:""}</g>
+  <text class="nodeLbl" x="${x-58*sc-8}" y="${y-2}" style="text-anchor:end;font-size:15px">Message</text>
+  <text class="nodeSub" x="${x-58*sc-8}" y="${y+15}" style="text-anchor:end">${T.msg?fmtKB(n.bigKB)+" biggest":"what · how big"}</text>
+  ${T.msg?`<text class="zoneTxt" x="${x+40*sc+8}" y="${y+5}" fill="${c}" style="text-anchor:start">${ZL[Z.msg.z]}</text>`:""}</g>`;}
+ /* nodes */
+ ["src","mid","tgt"].forEach(k=>{const {x,y,name}=ST[k],z=zz(k),c=colorOf(z);
+  s+=`<g class="hit" data-k="${k}" tabindex="0" role="button" aria-label="${name}">
+  <circle class="ring" cx="${x}" cy="${y}" r="58" fill="${bgOf(z)}" stroke="${c}" stroke-width="3.5"/>
+  ${k==="tgt"?`<clipPath id="tclip"><circle cx="${x}" cy="${y}" r="55"/></clipPath><rect clip-path="url(#tclip)" x="${x-58}" y="${y+55-110*Math.min(1,n.inflTgt/I.tgtCap)}" width="116" height="${110*Math.min(1,n.inflTgt/I.tgtCap)}" fill="${c}" opacity=".18"/>`:""}
+  <g transform="translate(${x} ${y-6})" class="glyph" style="stroke:${z?c:"var(--ink)"}">${GLYPH[k]}</g>
+  <text class="nodeLbl" x="${x}" y="${y+86}">${name}</text>
+  <text class="nodeSub" x="${x}" y="${y+103}">${ST[k].sub}</text>
+  ${T[k]?`<text class="zoneTxt" x="${x}" y="${y+121}" fill="${c}">${ZL[Z[k].z]}</text>`:`<text x="${x}" y="${y+42}" text-anchor="middle" style="font-size:11px;fill:var(--mute)">tap</text>`}
+  ${k==="mid"&&I.where==="azure"?`<g transform="translate(${x+44} ${y-46})"><circle r="15" fill="var(--card)" stroke="var(--acc)" stroke-width="2"/><text y="4" text-anchor="middle" style="font-size:10px;font-weight:800;fill:var(--acc)">Az</text></g>`:""}
+  ${k==="src"&&I.event==="mass"&&T.src?`<g transform="translate(${x+44} ${y-46})" class="pulse"><circle r="15" fill="var(--card)" stroke="${colorOf(Z.src.z)}" stroke-width="2"/><text y="5" text-anchor="middle" style="font-size:14px;font-weight:800;fill:${colorOf(Z.src.z)}">!</text></g>`:""}
+  </g>`;});
+ const svg=document.getElementById("svg");svg.innerHTML=s;
+ const g=document.getElementById("gearG");if(g)g.style.animationDuration=gearSpeed+"s";
+ svg.querySelectorAll(".hit").forEach(el=>{el.onclick=e=>{e.stopPropagation();openCard(el.dataset.k,el)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCard(el.dataset.k,el)}}});
+ document.getElementById("hint").style.display=Object.keys(T).length?"none":"block";
+ renderResults(Z,n);
+}
+
+/* ================= attribute cards ================= */
+function logRange(id,label,min,max,val,unit,ticks,fmtFn){
+ const p=Math.round(1000*Math.log(val/min)/Math.log(max/min));
+ return `<div class="fld"><div class="lab">${label}<span class="val" id="v_${id}">${fmtFn(val)}${unit}</span></div><input type="range" min="0" max="1000" value="${p}" data-log="${id}" data-min="${min}" data-max="${max}" data-u="${unit}"><div class="ticks">${ticks.map(t=>`<span>${t}</span>`).join("")}</div></div>`;
+}
+function linRange(id,label,min,max,step,val,unit,ticks){
+ return `<div class="fld"><div class="lab">${label}<span class="val" id="v_${id}">${val}${unit}</span></div><input type="range" min="${min}" max="${max}" step="${step}" value="${val}" data-lin="${id}" data-u="${unit}"><div class="ticks">${ticks.map(t=>`<span>${t}</span>`).join("")}</div></div>`;
+}
+const chips=(id,label,opts,sm)=>`<div class="fld"><div class="lab">${label}${sm?`<span class="sm">${sm}</span>`:""}</div><div class="chips">${opts.map(o=>`<button class="chip${String(I[id])===String(o[0])?" on":""}" data-chip="${id}" data-v="${o[0]}"${typeof o[0]==="number"?' data-n="1"':""}>${o[1]}${o[2]?`<span class="sm"> · ${o[2]}</span>`:""}</button>`).join("")}</div></div>`;
+const num=(id,label,unit,extra)=>`<div class="fld numrow"><label for="n_${id}" id="lab_${id}">${label}</label><span><input type="number" min="0" step="any" id="n_${id}" data-num="${id}" value="${I[id]}"> ${unit||""}${extra||""}</span></div>`;
+const FMT={hdrFields:v=>Math.round(v),lineFields:v=>Math.round(v),linesT:fmt,linesM:fmt,fileKB:v=>fmtKB(v),countries:v=>Math.round(v),massRec:fmt,rate:fmt,perCountry:fmt,sizeKB:v=>fmtKB(v),maxF:v=>"×"+fmt(v),rpm:fmt,secs:fmtS,tgtCap:fmt,tgtT:fmtS};
+const SNAP={hdrFields:v=>Math.max(1,Math.round(v)),lineFields:v=>Math.max(1,Math.round(v)),linesT:v=>Math.max(1,nice(v)),linesM:v=>Math.max(1,nice(v)),fileKB:nice,countries:v=>Math.max(1,Math.round(v)),massRec:nice,rate:nice,perCountry:nice,sizeKB:v=>v<10?+v.toFixed(1):nice(v),maxF:v=>Math.max(1,nice(v)),rpm:v=>Math.max(1,nice(v)),secs:v=>v<1?+v.toFixed(2):v<10?+v.toFixed(1):Math.round(v),tgtCap:v=>Math.max(1,nice(v)),tgtT:v=>+v.toFixed(v<1?2:1)};
+
+function cardBody(k){
+ if(k==="src")return `<p class="why">How far the business reaches, the rare big days, and how it grows.</p>
+  ${num("countries","Countries at full rollout","")}
+  ${chips("event","Big one-off events?",[["none","None"],["peak","Peak days"],["mass","Mass loads"]],"month-end, campaigns, mass updates, initial loads")}
+  <div id="massBox" ${I.event==="mass"?"":"hidden"}>${num("massRec","Records in one mass load","records")}${num("massWin","Must finish within","hours")}</div>
+  ${chips("growth","Growth in 3 years",[[1.5,"About the same"],[2,"Doubles"],[3,"×3"],[5,"×5 or more"]])}`;
+ if(k==="msg")return `<p class="why">Every layer has a size limit. The biggest message counts, not the normal one.</p>
+  ${chips("kind","What does one message carry?",[["status","Status / event"],["doc","Business document"],["file","Document with a file"]])}
+  ${chips("sizeMode","Size",[["direct","I know the size"],["calc","Not sure? Let's calculate"]])}
+  <div id="szDirect" ${I.sizeMode==="direct"?"":"hidden"}>
+   ${num("sizeVal","Normal size of one record","",` <select data-sel="sizeUnit"><option${I.sizeUnit==="KB"?" selected":""}>KB</option><option${I.sizeUnit==="MB"?" selected":""}>MB</option></select>`)}
+   ${chips("maxF","The biggest one is",[[1,"About the same"],[10,"×10"],[100,"×100"],[1000,"×1000"]])}
+  </div>
+  <div id="szCalcBox" ${I.sizeMode==="calc"?"":"hidden"}>
+   ${chips("fmtType","Format",[["json","JSON"],["xml","XML"],["csv","CSV"],["idoc","IDoc / fixed-length"]])}
+   ${chips("struct","Structure",[["flat","One flat record"],["hdr","Header + lines"]])}
+   ${num("hdrFields",I.struct==="hdr"?"Fields in the header":"Fields in the record","")}
+   <div id="lineBox" ${I.struct==="hdr"?"":"hidden"}>${num("lineFields","Fields per line","")}${num("linesT","Lines in a normal one","")}${num("linesM","Lines in the biggest one","")}</div>
+   ${chips("valLen","Typical field value",[[6,"Short codes"],[12,"Normal"],[30,"Long texts"],[80,"Free text"]])}
+   <div id="fileBox" ${I.kind==="file"?"":"hidden"}>${num("fileKB","Attached file size","KB")}</div>
+   <div class="verdictBox" style="background:var(--accbg)" id="szCalc"></div>
+  </div>
+  ${num("rpm","Records grouped in one message","")}`;
+ if(k==="inf")return `<p class="why">How many arrive in the busiest hour, and how they bunch up.</p>
+  ${chips("rateMode","Busiest hour, given as",[["total","All countries together"],["perCountry","One country × countries"]])}
+  <div id="rtTot" ${I.rateMode==="total"?"":"hidden"}>${num("rate","Records in the busiest hour","")}</div>
+  <div id="rtPer" ${I.rateMode==="perCountry"?"":"hidden"}>${num("perCountry","Records in one country's busiest hour","")}<div class="note" id="perRes"></div></div>
+  ${chips("who","Who creates the data?",[["user","People in screens","rush hours"],["job","Automated jobs","batch dumps"],["steady","Machines or devices","steady stream"]])}
+  <div class="fld"><label class="toggle"><input type="checkbox" id="queueT" ${I.queue?"checked":""}> A queue in between holds a backlog <span class="sm">Solace or Service Bus</span></label></div>`;
+ if(k==="mid")return `<p class="why">The work per record decides how many are in process at once. The BTP iFlow can't scale for one interface; Azure can.</p>
+  ${chips("work","Work per record",[["w1","Pass-through","≈ "+fmtS(S.t_w1)],["w2","Some checks","≈ "+fmtS(S.t_w2)],["w3","Heavy orchestration","≈ "+fmtS(S.t_w3)]])}
+  ${chips("where","Where does the work run?",[["btp","In the BTP iFlow"],["azure","In Azure, iFlow stays thin"]])}`;
+ if(k==="tgt")return `<p class="why">How data is handed to the target, how much it absorbs, and how quickly it must appear.</p>
+  ${chips("send","Handed over as",[["one","One record per call"],["small","Small batches"],["bulk","Bulk API or file"]])}
+  ${chips("absorb","How much can it take in parallel?",[["few","A few at a time","e.g. S/4"],["dozens","Dozens"],["hundreds","Hundreds","cloud service"]])}
+  ${chips("fresh","Must appear in the target within",[["sec","Seconds"],["min","Minutes"],["hour","The hour"],["day","Next day"]])}`;
+}
+function openCard(k,el){
+ if(k==="del"){k="tgt";el=document.querySelector('.hit[data-k="tgt"]')||el;}
+ if(k==="inf"||k==="src"){}
+ open=k;I.touched[k]=1;if(k==="tgt")I.touched.del=1;saveIn();
+ document.querySelectorAll(".pop").forEach(p=>p.remove());
+ const st=ST[k],pop=document.createElement("div");pop.className="pop";pop.id="pop";
+ pop.innerHTML=`<button class="x" aria-label="Close">×</button><h3>${st.name}</h3>${cardBody(k)}<div id="cardVerdict"></div>`;
+ const stage=document.getElementById("stage");stage.appendChild(pop);
+ /* place near the element */
+ const sr=stage.getBoundingClientRect(),er=el.getBoundingClientRect();
+ let left=er.left-sr.left+er.width/2-170;left=Math.max(8,Math.min(left,sr.width-348));
+ let top=er.bottom-sr.top+6;if(k==="msg")top=er.bottom-sr.top+4;
+ pop.style.left=left+"px";pop.style.top=top+"px";
+ pop.addEventListener("click",e=>e.stopPropagation());
+ pop.querySelector(".x").onclick=closeCard;
+ pop.querySelectorAll("[data-log]").forEach(r=>r.addEventListener("input",()=>{const id=r.dataset.log,min=+r.dataset.min,max=+r.dataset.max;let v=min*Math.pow(max/min,r.value/1000);v=SNAP[id](v);I[id]=v;document.getElementById("v_"+id).textContent=FMT[id](v)+r.dataset.u;update();}));
+ pop.querySelectorAll("[data-lin]").forEach(r=>r.addEventListener("input",()=>{const id=r.dataset.lin;I[id]=+r.value;document.getElementById("v_"+id).textContent=r.value+r.dataset.u;update();}));
+ pop.querySelectorAll("[data-chip]").forEach(b=>b.onclick=()=>{const id=b.dataset.chip;I[id]=b.dataset.n?+b.dataset.v:b.dataset.v;
+  pop.querySelectorAll(`[data-chip="${id}"]`).forEach(x=>x.classList.toggle("on",x===b));
+  if(id==="event")document.getElementById("massBox").hidden=I.event!=="mass";
+  if(id==="sizeMode"){document.getElementById("szDirect").hidden=I.sizeMode!=="direct";document.getElementById("szCalcBox").hidden=I.sizeMode!=="calc";}
+  if(id==="struct"){document.getElementById("lineBox").hidden=I.struct!=="hdr";document.getElementById("lab_hdrFields").textContent=I.struct==="hdr"?"Fields in the header":"Fields in the record";}
+  if(id==="kind"){const fb=document.getElementById("fileBox");if(fb)fb.hidden=I.kind!=="file";}
+  if(id==="rateMode"){document.getElementById("rtTot").hidden=I.rateMode!=="total";document.getElementById("rtPer").hidden=I.rateMode!=="perCountry";}
+  update();});
+ pop.querySelectorAll("[data-num]").forEach(r=>r.addEventListener("input",()=>{const v=parseFloat(r.value);if(isFinite(v)&&v>=0){I[r.dataset.num]=v;update();}}));
+ pop.querySelectorAll("[data-sel]").forEach(r=>r.addEventListener("change",()=>{I[r.dataset.sel]=r.value;update();}));
+ const q=pop.querySelector("#queueT");if(q)q.onchange=()=>{I.queue=q.checked;update();};
+ update();
+}
+function closeCard(){open=null;document.querySelectorAll(".pop").forEach(p=>p.remove());document.getElementById("stage").style.minHeight="";}
+function update(){
+ saveIn();
+ const pop=document.getElementById("pop");
+ draw();
+ if(pop){document.getElementById("stage").appendChild(pop);
+  const {Z,n}=evaluate(view==="y3"),z=Z[open];
+  const sc=document.getElementById("szCalc");if(sc&&I.sizeMode==="calc"){const d=deriveSize();
+   sc.innerHTML=`<b>Calculated size</b><table class="nums" style="margin-top:4px">
+    ${d.perField?`<tr><td>Per field <span class="note">${d.note}</span></td><td>${fmtB(d.perField)}</td></tr>`:`<tr><td colspan="2" class="note">${d.note}</td></tr>`}
+    <tr><td>Envelope${I.fmtType==="csv"?" (header row)":I.fmtType==="idoc"?" (control record)":""}</td><td>${fmtB(d.envB)}</td></tr>
+    <tr><td>${d.lines?"Header":"Record"}</td><td>${fmtB(d.hdrB)}</td></tr>
+    ${d.lines?`<tr><td>Per line</td><td>${fmtB(d.lineB)}</td></tr>`:""}
+    ${d.file?`<tr><td>File${I.fmtType==="json"||I.fmtType==="xml"?" (base64 ×"+S.b64+")":""}</td><td>${fmtB(d.file)}</td></tr>`:""}
+    <tr><td><b>Normal message</b>${d.lines?` <span class="note">${fmt(I.linesT)} lines</span>`:""}</td><td>${fmtB(d.typB)}</td></tr>
+    <tr><td><b>Biggest message</b>${d.lines?` <span class="note">${fmt(I.linesM)} lines</span>`:""}</td><td>${fmtB(d.bigB)}</td></tr></table>
+    <div class="note" style="margin-top:4px">Minified, UTF-8 (1 byte per Latin character). Pretty-printing adds ~30–50%; non-Latin text up to 2–3×.</div>`;}
+  const pr=document.getElementById("perRes");if(pr)pr.textContent=`× ${Math.round(I.countries)} countries (from Source) = ${fmt(I.perCountry*I.countries)} per hour`;
+  setTimeout(()=>{const p=document.getElementById("pop");if(p&&getComputedStyle(p).position==="absolute")document.getElementById("stage").style.minHeight=(p.offsetTop+p.offsetHeight+16)+"px";},0);
+  document.getElementById("cardVerdict").innerHTML=`<div class="verdictBox ${z.z}"><b>${({F:"Fit — works as designed",A:"Adapt — works with a design change",B:"Beyond — wrong fit here"})[z.z]}${view==="y3"?" · in 3 years":""}</b>${z.w}${z.fix?`<div style="margin-top:3px"><b style="display:inline">Do:</b> ${z.fix}</div>`:""}</div>`;}
+}
+document.addEventListener("click",e=>{if(open&&!e.target.closest(".pop")&&!e.target.closest(".hit"))closeCard();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeCard();closeSet();}});
+
+/* ================= results ================= */
+function renderResults(Z,n){
+ const T=I.touched,keys=ORDER.filter(k=>T[k]);
+ const pill=document.getElementById("ovPill"),txt=document.getElementById("ovText");
+ const zs=keys.map(k=>Z[k].z),nb=zs.filter(z=>z==="B").length,na=zs.filter(z=>z==="A").length;
+ const v=!keys.length?null:nb?"B":na>=2?"G":na?"A":"F";
+ pill.className="pill "+(v||"");pill.textContent=v?{F:"Fit",A:"Adapt",G:"Fragile",B:"Beyond"}[v]:"–";
+ const part=keys.length<6?` (${keys.length} of 6 parts set; the rest use typical values)`:"";
+ txt.textContent=!v?"Tap the parts of the flow to begin.":{F:"The flow works as designed.",A:"The flow works with one design change.",G:"Several parts need changes at once. Each is fine alone, together they make the flow fragile: compare with another pattern.",B:"At least one part is the wrong fit. Fix it first; tuning elsewhere won't compensate."}[v]+part;
+ document.getElementById("todo").innerHTML=keys.filter(k=>Z[k].z!=="F").map(k=>`<li data-k="${k}"><span class="z ${Z[k].z}">${ZL[Z[k].z]}</span><b>${ST[k].name}:</b> ${Z[k].fix||Z[k].w}</li>`).join("")||(v?`<li class="note">Nothing to change${view==="y3"?" in 3 years":""}. Try the 3-year view.</li>`:"");
+ document.querySelectorAll("#todo li[data-k]").forEach(li=>li.onclick=e=>{e.stopPropagation();const el=document.querySelector(`.hit[data-k="${li.dataset.k}"]`);openCard(li.dataset.k,el);document.getElementById("stage").scrollIntoView&&document.getElementById("stage").scrollIntoView({behavior:"smooth"});});
+ const rows=[
+  ["Busiest hour"+(view==="y3"?" (3 years)":""),fmt(n.Rrec)+" records"],
+  ["Average hour",fmt(n.avgRec)+" records"],
+  ["Biggest message",fmtKB(n.bigKB)],
+  ["Billed as BTP messages (biggest)",n.weight+"×"],
+  ["In process at once in the iFlow",fmt(n.inflMid)+" of "+fmt(S.ciCap)],
+  ["In process at once at the target",fmt(n.inflTgt)+" of "+fmt(I.tgtCap)]];
+ if(I.event==="mass")rows.push(["Mass load rate",fmt(n.massRate)+" per hour"]);
+ document.getElementById("nums").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("");
+}
+
+/* ================= settings modal ================= */
+function openSet(){
+ const bg=document.createElement("div");bg.className="modalBg";bg.id="setBg";
+ bg.innerHTML=`<div class="modal"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Technical settings</h2><button class="btn" id="setClose">Done</button></div>
+ <p class="note">For architects. These limits and factors drive every verdict. Defaults come from vendor documentation and practice (A = official doc, B = vendor KBA, C = secondary, E = empirical, to calibrate). Changes are stored in this browser only.</p>
+ ${SET_DEF.map(g=>`<h4>${g.g}</h4><table>${g.items.map(([k])=>`<tr id="sr_${k}"><td>${SM[k].l}</td><td style="text-align:right"><input type="number" step="any" id="s_${k}" value="${S[k]}"></td><td class="note">${SM[k].u}</td><td class="note">default ${SM[k].d}</td><td class="conf">${SM[k].c}</td></tr>`).join("")}</table>`).join("")}
+ <div style="margin-top:12px;display:flex;gap:8px"><button class="btn" id="setReset">Reset to defaults</button></div></div>`;
+ document.body.appendChild(bg);
+ const paint=()=>{Object.keys(S).forEach(k=>document.getElementById("sr_"+k).classList.toggle("chg",S[k]!==SM[k].d));document.getElementById("gear").classList.toggle("mod",Object.keys(S).some(k=>S[k]!==SM[k].d));};
+ Object.keys(S).forEach(k=>document.getElementById("s_"+k).addEventListener("input",e=>{const v=parseFloat(e.target.value);if(isFinite(v)&&v>0){S[k]=v;saveSet();paint();draw();}}));
+ bg.onclick=e=>{if(e.target===bg)closeSet()};
+ document.getElementById("setClose").onclick=closeSet;
+ document.getElementById("setReset").onclick=()=>{Object.keys(S).forEach(k=>{S[k]=SM[k].d;document.getElementById("s_"+k).value=S[k]});saveSet();paint();draw();};
+ paint();
+}
+function closeSet(){const b=document.getElementById("setBg");if(b)b.remove();}
+document.getElementById("gear").onclick=openSet;
+document.getElementById("gear").classList.toggle("mod",Object.keys(S).some(k=>S[k]!==SM[k].d));
+
+/* ================= wiring ================= */
+document.getElementById("vNow").onclick=e=>{e.stopPropagation();view="now";vNow.classList.add("on");vY3.classList.remove("on");update()};
+document.getElementById("vY3").onclick=e=>{e.stopPropagation();view="y3";vY3.classList.add("on");vNow.classList.remove("on");update()};
+document.getElementById("ex").onclick=e=>{e.stopPropagation();closeCard();I=JSON.parse(JSON.stringify(EXAMPLE));saveIn();draw();};
+document.getElementById("clr").onclick=e=>{e.stopPropagation();closeCard();I=JSON.parse(JSON.stringify(DEF));saveIn();draw();};
+draw();
+</script>
+</body>
+</html>

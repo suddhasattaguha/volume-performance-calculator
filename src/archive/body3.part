@@ -1,0 +1,473 @@
+<style>
+.infoRow{opacity:.62}
+.infoRow input[type=text]{width:100%;padding:6px 8px;border:1.5px dashed var(--line);border-radius:10px;background:transparent;color:var(--ink);font-size:14px}
+.infoTag{font-size:10.5px;font-weight:700;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-left:6px;text-transform:uppercase;letter-spacing:.04em}
+.calcBox{background:var(--accbg);border-radius:10px;padding:8px 10px;font-size:12.5px;margin-top:8px}
+.calcBox .f{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;color:var(--mute)}
+.chk{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;cursor:pointer;margin:12px 0 4px}
+.chk input{width:18px;height:18px;accent-color:var(--acc)}
+.pop.wide{width:400px}
+.risk{font-weight:800;border-radius:999px;padding:6px 14px;font-size:15px;white-space:nowrap}
+.risk.L{background:var(--fitbg);color:var(--fit)}.risk.M{background:var(--adbg);color:var(--ad)}.risk.H{background:var(--bebg);color:var(--be)}.risk.N{background:var(--line);color:var(--mute)}
+.ptbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+.ptbl th{font-size:11.5px;color:var(--mute);text-align:left;font-weight:600;padding:4px}
+.ptbl td{border-top:1px solid var(--line);padding:7px 4px;vertical-align:top}
+.ptbl tr.prow{cursor:pointer}
+.ptbl tr.prow:hover td{background:var(--bg)}
+.ptbl .pn{font-weight:700}
+.ptbl .pc{font-size:11.5px;color:var(--mute)}
+.zc{font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap;display:inline-block}
+.zc.F{background:var(--fitbg);color:var(--fit)}.zc.A{background:var(--adbg);color:var(--ad)}.zc.G{background:var(--adbg);color:var(--ad);outline:1.5px dashed var(--ad);outline-offset:-1.5px}.zc.B{background:var(--bebg);color:var(--be)}
+.plat{margin:4px 0 2px;padding:0;list-style:none}
+.plat li{display:flex;gap:8px;align-items:baseline;padding:4px 0;font-size:13px;border-top:1px dashed var(--line)}
+.plat li:first-child{border-top:0}
+.plat .pl{min-width:150px;font-weight:600}
+.plat .pm{color:var(--mute);font-size:12px}
+.prof{width:100%;border-collapse:collapse}
+.prof td{padding:6px 3px;border-top:1px solid var(--line);font-size:13px;vertical-align:top}
+.prof td.v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.prof th{font-size:11.5px;color:var(--mute);text-align:left;font-weight:600;padding:3px}
+.bd{font-size:11px;font-weight:700;color:var(--acc);background:var(--accbg);border-radius:4px;padding:2px 7px;white-space:nowrap;cursor:pointer;border:1px solid transparent;display:inline-block;margin:1px 0}
+.bd:hover{border-color:var(--acc)}
+.bd::after{content:" ⓘ";font-weight:400}
+.expl td{background:var(--bg);font-size:12.5px;padding:8px 10px!important}
+.scale{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0 6px}
+.scale span{font-size:11px;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--mute)}
+.scale span.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:700}
+.expl .f{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;display:block;margin:4px 0;color:var(--ink)}
+.res3{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:860px){.res3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><h1>Flow Check</h1><p class="sub">Describe one async interface from source to target. Tap each part, answer what you know, and see how each pattern and platform copes.</p></div>
+ <div class="tools">
+  <div class="seg"><button id="vNow" class="on">Today</button><button id="vY3">In 3 years</button></div>
+  <button class="btn" id="clr" title="Clear all answers">Start over</button>
+  <button class="gear" id="gear" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+ </div>
+</header>
+
+<div class="stage" id="stage">
+ <div class="hint" id="hint">Start anywhere: tap the source, the message, the pipes, the middleware or the target.</div>
+ <div class="scroller"><svg class="flow" id="svg" viewBox="0 0 1000 380" role="img" aria-label="Async flow: source, influx, middleware, delivery, target"></svg></div>
+ <div class="legend"><span style="--c:var(--idle)">not set yet</span><span style="--c:var(--fit)">Fit</span><span style="--c:var(--ad)">Adapt — works with a design change</span><span style="--c:var(--be)">Beyond — wrong fit</span><span style="--c:transparent">Colours show the best pattern below.</span></div>
+</div>
+
+<div class="res3">
+ <div class="box">
+  <h3>Evaluated result</h3>
+  <div class="big"><span class="risk N" id="riskPill">–</span><div id="riskText" class="note">Answer the parts of the flow to see the result.</div></div>
+  <table class="ptbl" id="ptbl"></table>
+  <div style="margin-top:10px"><button class="btn" id="copy">Copy summary</button> <span class="note" id="copied"></span></div>
+ </div>
+ <div class="box">
+  <h3>Workload profile <span class="note">tap a band to see how it's calculated</span></h3>
+  <table class="prof" id="prof"></table>
+ </div>
+</div>
+</main>
+
+<script>
+/* ================= settings ================= */
+const SET_DEF=[
+ {g:"Answers translated into numbers",items:[
+  ["t_w1","Time per record: pass-through","s",0.5,"E"],
+  ["t_w2","Time per record: medium transformation","s",5,"E"],
+  ["t_w3","Time per record: heavy orchestration","s",90,"E"],
+  ["cap_few","Target can take at once: a few (e.g. S/4)","calls",10,"E"],
+  ["cap_dozens","Target can take at once: dozens","calls",50,"E"],
+  ["cap_hundreds","Target can take at once: hundreds","calls",500,"E"],
+  ["tgtT","Target time to post one record","s",0.5,"E"],
+  ["smallF","Speed-up of small batches vs single calls","×",20,"E"],
+  ["bulkF","Speed-up of bulk API or file vs single calls","×",200,"E"],
+  ["workDays","Working days per month","days",21,"A"],
+  ["valLen","Typical field value length (size calculation)","chars",12,"E"]]},
+ {g:"Regions (UTC offset used for each)",items:[
+  ["oA","First region (e.g. Europe)","h",1,"E"],["oB","Second region (e.g. Americas)","h",-5,"E"],["oC","Third region (e.g. Asia-Pacific)","h",8,"E"]]},
+ {g:"Zoning",items:[
+  ["comfort","Comfort level: Fit up to this share of a capacity","%",70,"E"],
+  ["rateW","Busiest-hour messages: Adapt above (per-message patterns)","/h",50000,"E"],
+  ["rateD","Busiest-hour messages: Beyond above (per-message patterns)","/h",500000,"E"],
+  ["burstW","Busiest ÷ average hour: bursty above","×",10,"E"],
+  ["meterRatio","Metered weight per message: Adapt above","×",4,"E"],
+  ["ownRoad","Mass load per hour that needs its own road","/h",50000,"E"]]},
+ {g:"Azure",items:[
+  ["laSoftMB","Logic App comfortable message size","MB",50,"E"],["laMaxMB","Logic App max message per action","MB",105,"A"],
+  ["azCap","Azure processing capacity in parallel","msgs",1000,"E"],
+  ["sbEntMB","Service Bus entity max message size (configured)","MB",1,"A"],["sbMaxMB","Service Bus Premium hard max","MB",100,"A"],
+  ["refKB","Claim-check reference message","KB",2,"E"]]},
+ {g:"Event broker — Solace / AEM",items:[["solSoftMB","Comfortable message size","MB",10,"E"],["solMaxMB","Guaranteed message cap (service class)","MB",30,"A"]]},
+ {g:"SAP BTP Integration Suite",items:[
+  ["ciSoftMB","iFlow comfortable message size","MB",10,"E"],["ciGuardMB","iFlow sender body guard","MB",40,"B"],
+  ["ciCap","iFlow capacity in process at once for this interface","msgs",50,"E"],["tThin","Thin iFlow step (work done in Azure)","s/record",1,"E"],
+  ["slice","Metering slice","KB",250,"A"]]},
+ {g:"Target delivery",items:[["batchMax","Records per small batch call ($batch)","records",1000,"C"],["massMax","Records above which only bulk or file works","records",50000,"C"]]},
+ {g:"Message size calculation",items:[
+  ["nameLen","Average field name length","chars",12,"E"],["envB","Envelope per message","bytes",400,"E"],
+  ["idocSeg","IDoc segment record","bytes",1063,"A"],["idocCtl","IDoc control record","bytes",524,"A"],
+  ["idocFps","Fields per IDoc segment (approx.)","fields",25,"E"],["b64","Base64 growth for files in JSON or XML","×",1.37,"A"]]}
+];
+const S={},SM={};SET_DEF.forEach(g=>g.items.forEach(([k,l,u,d,c])=>{S[k]=d;SM[k]={l,u,d,c}}));
+try{const s=JSON.parse(localStorage.getItem("fc3_set")||"null");if(s)Object.keys(s).forEach(k=>{if(k in S)S[k]=+s[k]})}catch(e){}
+const saveSet=()=>{try{const o={};Object.keys(S).forEach(k=>{if(S[k]!==SM[k].d)o[k]=S[k]});localStorage.setItem("fc3_set",JSON.stringify(o))}catch(e){}};
+
+/* daily curves per local hour */
+const RAW={
+ human:[0,0,0,0,0,0,.01,.04,.09,.13,.14,.12,.08,.10,.12,.11,.08,.05,.02,.01,0,0,0,0],
+ app:[.01,.01,.01,.01,.01,.02,.03,.05,.07,.08,.08,.08,.07,.07,.08,.08,.07,.06,.04,.03,.02,.02,.01,.01],
+ jobs:[.05,.30,.25,.10,.03,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.03,.03,.04,.06]};
+const RAW_DEF=JSON.parse(JSON.stringify(RAW));
+try{const c=JSON.parse(localStorage.getItem("fc3_curves")||"null");if(c)Object.keys(c).forEach(k=>{if(k in RAW&&Array.isArray(c[k])&&c[k].length===24)RAW[k]=c[k]})}catch(e){}
+const CURVE={};function buildCurves(){Object.keys(RAW).forEach(k=>{const t=RAW[k].reduce((a,b)=>a+b,0)||1;CURVE[k]=RAW[k].map(v=>v/t)})}buildCurves();
+const saveCurves=()=>{try{const o={};Object.keys(RAW).forEach(k=>{if(JSON.stringify(RAW[k])!==JSON.stringify(RAW_DEF[k]))o[k]=RAW[k]});localStorage.setItem("fc3_curves",JSON.stringify(o))}catch(e){}};
+const peakShare=k=>Math.max(...CURVE[k]);
+const WHO={human:"Human",app:"Application or process",jobs:"Scheduled jobs"};
+
+/* ================= inputs ================= */
+const DEF={touched:{},
+ srcName:"",who:"human",countries:1,where:"one",growth:2,mass:"no",massRec:300000,massWin:4,
+ objName:"",content:"trans",sizeMode:"known",sizeVal:50,sizeUnit:"KB",bigVal:500,bigUnit:"KB",fmtType:"json",struct:"hdr",hdrFields:20,lineFields:30,linesT:50,linesM:2000,att:false,attKB:500,multi:false,rpm:100,
+ know:"hour",scope:"one",qty:500,estN:1000,estF:2,dayF:1,
+ midName:"",work:"w2",send:"one",tgtName:"",absorb:"few",fresh:"min"};
+let I=JSON.parse(JSON.stringify(DEF));
+try{const s=JSON.parse(localStorage.getItem("fc3_in")||"null");if(s)I=Object.assign(I,s)}catch(e){}
+const saveIn=()=>{try{localStorage.setItem("fc3_in",JSON.stringify(I))}catch(e){}};
+let view="now",open=null;
+
+/* ================= helpers ================= */
+const fmt=v=>!isFinite(v)?"–":v>=1e6?(+(v/1e6).toFixed(v>=1e7?0:1))+"M":v>=1e4?Math.round(v/1e3)+"k":v>=1000?(+(v/1e3).toFixed(1))+"k":v>=10?Math.round(v)+"":v>=1?(+v.toFixed(1))+"":(+v.toFixed(2))+"";
+const fmtB=b=>b>=1048576?(+(b/1048576).toFixed(1))+" MB":b>=1024?(+(b/1024).toFixed(b>=10240?0:1))+" KB":Math.round(b)+" B";
+const fmtS=s=>s>=60?(+(s/60).toFixed(1))+" min":(+s.toFixed(s<1?2:1))+" s";
+const esc=t=>String(t||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MB=1048576;
+
+/* ================= calculation ================= */
+function sizeCalc(){
+ const v=S.valLen,nm=S.nameLen,f=I.fmtType,lines=I.struct==="hdr",hf=I.hdrFields,lf=I.lineFields;
+ let pf=null,ov=0,hB,lB,env=S.envB,note;
+ if(f==="json"){pf=nm+v+6;ov=3;note=`"name":"value", → ${nm} + ${v} + 6`;}
+ else if(f==="xml"){pf=2*nm+5+v;ov=2*nm+5;note=`<Name>value</Name> → 2 × ${nm} + ${v} + 5`;}
+ else if(f==="csv"){pf=v+1;ov=2;env=(lines?lf:hf)*(nm+1);note=`value ${v} + 1 delimiter, plus a header row`;}
+ else note=`${S.idocSeg}-byte segments, ~${S.idocFps} fields each, + ${S.idocCtl}-byte control record`;
+ if(f==="idoc"){hB=Math.max(1,Math.ceil(hf/S.idocFps))*S.idocSeg;lB=Math.max(1,Math.ceil(lf/S.idocFps))*S.idocSeg;env=S.idocCtl;}else{hB=hf*pf+ov;lB=lf*pf+ov;}
+ return {pf,hB,lB,env,note,lines,typ:env+hB+(lines?I.linesT*lB:0),big:env+hB+(lines?I.linesM*lB:0)};
+}
+function sizes(){
+ let typ,big;
+ if(I.sizeMode==="calc"){const c=sizeCalc();typ=c.typ;big=c.big;}
+ else{typ=Math.max(.1,+I.sizeVal||1)*(I.sizeUnit==="MB"?MB:1024);big=Math.max(typ,Math.max(.1,+I.bigVal||0)*(I.bigUnit==="MB"?MB:1024));}
+ const att=I.att?I.attKB*1024*((I.sizeMode==="calc"&&(I.fmtType==="json"||I.fmtType==="xml"))?S.b64:1):0;
+ return {typ:typ+att,big:big+att,att};
+}
+function regions(){const n=Math.max(1,+I.countries||1);
+ if(I.where==="one")return [[S.oA,n]];
+ if(I.where==="two")return [[S.oA,n/2],[S.oB,n/2]];
+ return [[S.oA,n/3],[S.oB,n/3],[S.oC,n/3]];}
+function hourlyFor(dPerCountry){const c=CURVE[I.who],H=new Array(24).fill(0);
+ regions().forEach(([off,n])=>{for(let h=0;h<24;h++)H[h]+=n*dPerCountry*c[((h+off)%24+24)%24];});return H;}
+function calc(y3){
+ const g=y3?I.growth:1,n=Math.max(1,+I.countries||1),pk=peakShare(I.who);
+ let H,how=[];
+ if(I.know==="est"){const D=I.estN*I.estF;H=hourlyFor(D/n);how.push(["Per day, all countries",`${fmt(I.estN)} creators × ${fmt(I.estF)} per day`,D]);}
+ else if(I.scope==="one"){const d=I.know==="hour"?I.qty/pk:I.know==="day"?I.qty:I.qty/S.workDays;H=hourlyFor(d);
+  how.push(["Per day, one typical country",I.know==="hour"?`busiest hour ${fmt(I.qty)} ÷ ${(pk*100).toFixed(0)}% (peak share of the ${WHO[I.who].toLowerCase()} curve)`:I.know==="month"?`${fmt(I.qty)} per month ÷ ${S.workDays} days`:"entered",d]);
+  how.push(["Plain multiplication would say",`one country's busiest hour × ${n} countries`,d*pk*n]);}
+ else{ if(I.know==="hour"){const sh=hourlyFor(1),m=Math.max(...sh);H=sh.map(v=>v/m*I.qty);how.push(["Busiest hour, all countries","entered",I.qty]);}
+  else{const D=I.know==="day"?I.qty:I.qty/S.workDays;H=hourlyFor(D/n);how.push(["Per day, all countries",I.know==="month"?`${fmt(I.qty)} per month ÷ ${S.workDays} days`:"entered",D]);}}
+ const peakH=H.indexOf(Math.max(...H)),normal=Math.max(...H),daily=H.reduce((a,b)=>a+b,0);
+ how.push(["Busiest hour on a normal day",`curves of ${I.where==="one"?"one region":I.where==="two"?"two regions":"three regions"} summed per UTC hour, peak at ${peakH}:00 UTC`,normal]);
+ const R=normal*I.dayF*g, avg=daily*g/24;
+ if(I.dayF>1)how.push(["Busiest day",`× ${I.dayF}`,normal*I.dayF]);
+ if(g>1)how.push(["In 3 years",`× ${g}`,R]);
+ const rpm=I.multi?Math.max(1,+I.rpm||1):1, msgs=R/rpm, sz=sizes(), msgT=rpm*sz.typ, msgB=(rpm-1)*sz.typ+sz.big;
+ const secs=S["t_"+I.work]||5, inproc=R/3600*secs;
+ const massRate=(I.who!=="human"&&I.mass==="yes")?I.massRec/Math.max(.25,I.massWin):0;
+ return {g,H:H.map(v=>v*g*I.dayF),peakH,R,avg,daily:daily*g,ratio:avg>0?R/avg:0,rpm,msgs,typ:sz.typ,big:sz.big,msgT,msgB,secs,inproc,massRate,how,n};
+}
+
+/* ================= platform checks ================= */
+const Zc=(part,plat,z,metric,why)=>({part,plat,z,metric,why});
+function sizeChk(part,plat,b,soft,hard,hA,hB){const m=b/MB,z=m<=soft?"F":m<=hard?"A":"B";return Zc(part,plat,z,`${fmtB(b)} vs ${soft} MB comfort / ${hard} MB cap`,z==="F"?"within its size limit":z==="A"?hA:hB);}
+function capChk(part,plat,c,t,cap,hint){const inf=c.R/3600*t,drain=cap/t*3600;let z,why;
+ if(inf<=cap*S.comfort/100){z="F";why="has headroom at peak";}
+ else if(inf<=cap){z="A";why="close to its limit at peak";}
+ else if(c.avg<=drain){z="A";const back=(c.R-drain),mins=back/Math.max(1,drain-c.avg)*60;why=`can't keep up at peak; the queue holds ~${fmt(back)} and clears in ~${fmt(mins)} min`;}
+ else{z="B";why="can't keep up even with the average: "+hint;}
+ return Zc(part,plat,z,`${fmt(inf)} at once vs ${fmt(cap)}`,why);}
+function meterChk(c){const w=Math.ceil(c.msgT/(S.slice*1024)),wb=Math.ceil(c.msgB/(S.slice*1024));const z=w<=S.meterRatio?"F":"A";
+ return Zc("mid","BTP metering",z,`each message billed as ${w} (biggest ${wb})`,z==="F"?"normal cost per message":"cost per message rises: pass only what the target needs");}
+function rateChk(c){let z="F",why="single messages are fine at this rate";
+ if(c.msgs>S.rateD){z="B";why="too many single messages: group them into batch events";}else if(c.msgs>S.rateW){z="A";why="above the comfortable range: consider batch events";}
+ if(c.ratio>S.burstW&&z==="F"){z="A";why=`bursty (×${fmt(c.ratio)} the average): size the queue for it`;}
+ return Zc("inf","Event broker queue",z,`${fmt(c.msgs)} messages in the busiest hour`,why);}
+function massChk(c,separate){if(!c.massRate)return null;
+ if(separate)return Zc("src","Mass-load road","F",`${fmt(c.massRate)} per hour`,"batch path is its own road");
+ const z=c.massRate>S.ownRoad?"B":"A";return Zc("src","Mass-load road",z,`${fmt(c.massRate)} per hour on the daily road`,z==="B"?"needs its own road, separate from daily traffic":"shares the daily road: plan it off-peak");}
+function delChk(c,bulkPath){const n=c.rpm,s=I.send;let z="F",why={one:"one record per call",small:"small batches",bulk:"bulk or file"}[s]+" matches what arrives";
+ if(bulkPath&&s==="one"){z="A";why="batch path, but the target takes one record per call: use bulk or IDoc packets";}
+ else if(n>S.massMax&&s!=="bulk"){z="B";why=`${fmt(n)} records per message need a bulk or file interface`;}
+ else if(n>1&&s==="one"){z=n>S.batchMax?"B":"A";why=`${fmt(n)} records per message must be split again`;}
+ else if(n>S.batchMax&&s==="small"){z="A";why="larger than one batch call: chunk it";}
+ return Zc("del","Delivery to target",z,`${fmt(n)} record${n>1?"s":""} per message`,why);}
+function tgtChk(c,bulkPath){const f=bulkPath?S.bulkF:I.send==="small"?S.smallF:I.send==="bulk"?S.bulkF:1,cap=S["cap_"+I.absorb]||10;
+ const x=capChk("tgt",I.tgtName||"Target",c,S.tgtT/f,cap,"agree more capacity or hand over in batches");return x;}
+function freshChk(c,parts,batch){const q=parts.some(p=>p.z==="A"&&/queue holds/.test(p.why));
+ if(batch){const z=I.fresh==="sec"?"B":I.fresh==="min"?"A":"F";return Zc("tgt","Freshness",z,{sec:"seconds",min:"minutes",hour:"within the hour",day:"next day"}[I.fresh],z==="F"?"a scheduled run meets it":"batch runs can't deliver that fast");}
+ if(I.fresh==="sec"&&(q||c.ratio>4))return Zc("tgt","Freshness","A","seconds","at peak, data waits in the queue for minutes");
+ return Zc("tgt","Freshness","F",{sec:"seconds",min:"minutes",hour:"within the hour",day:"next day"}[I.fresh],"met");}
+const PAT=[
+ {id:"A",n:"Event via Solace → BTP",c:"Source → Solace queue → BTP iFlow (does the work) → target",run:c=>{const L=[
+  massChk(c,false),
+  sizeChk("msg","Solace",c.msgB,S.solSoftMB,S.solMaxMB,"close to the broker cap: streaming","above the broker cap: claim check"),
+  sizeChk("msg","BTP iFlow (size)",c.msgB,S.ciSoftMB,S.ciGuardMB,"streaming design, avoid multicast","above the iFlow guard"),
+  rateChk(c),
+  capChk("mid","BTP iFlow",c,c.secs,S.ciCap,"move the work upstream to Azure"),meterChk(c),
+  delChk(c,false),tgtChk(c,false)];L.push(freshChk(c,L.filter(Boolean),false));return L;}},
+ {id:"B",n:"Event with Azure processing",c:"Source → Service Bus → Logic App / Function (does the work) → Solace → thin iFlow → target",run:c=>{const L=[
+  massChk(c,false),
+  sizeChk("msg","Service Bus",c.msgB,S.sbEntMB,S.sbMaxMB,"raise the entity's max size","above Service Bus max: claim check"),
+  sizeChk("msg","Logic App",c.msgB,S.laSoftMB,S.laMaxMB,"use chunking","above the action cap: claim check"),
+  sizeChk("msg","Solace",c.msgB,S.solSoftMB,S.solMaxMB,"close to the broker cap","above the broker cap: claim check"),
+  sizeChk("msg","BTP iFlow (size)",c.msgB,S.ciSoftMB,S.ciGuardMB,"streaming design","above the iFlow guard"),
+  rateChk(c),
+  capChk("mid","Azure processing",c,c.secs,S.azCap,"scale out the plan"),capChk("mid","BTP iFlow (thin)",c,S.tThin,S.ciCap,"group records before BTP"),meterChk(c),
+  delChk(c,false),tgtChk(c,false)];L.push(freshChk(c,L.filter(Boolean),false));return L;}},
+ {id:"D",n:"Claim check (on the Azure road)",c:"Payload → blob store; reference via Service Bus / Solace → thin iFlow fetches → target",run:c=>{const small=c.msgB<256*1024;const L=[
+  massChk(c,false),
+  Zc("msg","Claim-check fit",small?"A":"F",`${fmtB(c.msgB)} biggest payload`,small?"extra steps not needed for small payloads":"built for large payloads"),
+  sizeChk("msg","Brokers (reference only)",S.refKB*1024,S.solSoftMB,S.solMaxMB,"",""),
+  sizeChk("msg","BTP iFlow (fetched payload)",c.msgB,S.ciSoftMB,S.ciGuardMB,"streaming fetch","above the iFlow guard: file path"),
+  rateChk(c),
+  capChk("mid","Azure processing",c,c.secs,S.azCap,"scale out the plan"),capChk("mid","BTP iFlow (thin + fetch)",c,S.tThin*1.5,S.ciCap,"group records before BTP"),meterChk(c),
+  delChk(c,false),tgtChk(c,false)];L.push(freshChk(c,L.filter(Boolean),false));return L;}},
+ {id:"E",n:"Batch / file via ADF",c:"ADF collects and chunks → thin iFlow → target via IDoc packets or file",run:c=>{const z=I.who==="jobs"?"F":I.fresh==="hour"||I.fresh==="day"?"A":"B";const L=[
+  massChk(c,true),
+  Zc("inf","ADF run pattern",z,WHO[I.who],z==="F"?"scheduled jobs suit a batch path":z==="A"?"a continuous source must be collected into runs":"a continuous source needing fast delivery is the wrong fit"),
+  Zc("msg","ADF (size)","F",fmtB(c.msgB),"file and data path has no practical size cap"),
+  capChk("mid","BTP iFlow (thin)",c,S.tThin/20,S.ciCap,"split runs into packets"),
+  delChk(c,true),tgtChk(c,true)];L.push(freshChk(c,L.filter(Boolean),true));return L;}}
+];
+const RK={F:0,A:1,B:2},VL={F:"Fit",A:"Adapt",G:"Fragile",B:"Beyond"};
+function evalP(p,c){const ch=p.run(c).filter(Boolean),nb=ch.filter(x=>x.z==="B").length,na=ch.filter(x=>x.z==="A").length;
+ return {ch,v:nb?"B":na>=2?"G":na?"A":"F",score:nb*10+na};}
+function evaluateAll(y3){const c=calc(y3);return {c,res:PAT.map(p=>({p,e:evalP(p,c)})).sort((a,b)=>a.e.score-b.e.score)};}
+function partZones(best){const Z={};best.e.ch.forEach(x=>{if(!Z[x.part]||RK[x.z]>RK[Z[x.part].z])Z[x.part]=x;});return Z;}
+
+/* ================= bands with explanations ================= */
+const BANDS={
+ L3:{n:"Busiest-hour rate",s:[["R1","≤ 1k/h"],["R2","1k–50k/h"],["R3","50k–500k/h"],["R4","> 500k/h"]],i:v=>v<=1000?0:v<=50000?1:v<=500000?2:3,why:"Rate decides whether single messages work, or records must be grouped or moved to a batch path."},
+ L4:{n:"Peak vs average",s:[["Flat","< 3×"],["Peaky","3–10×"],["Burst","> 10×"]],i:v=>v<3?0:v<=10?1:2,why:"Uneven load needs a buffer in front of the slowest layer, and decides how fast a backlog clears."},
+ L5:{n:"Run behaviour",s:[["F1","continuous"],["F2","every few minutes"],["F3","hourly to daily"],["F4","rare / on demand"]],i:()=>I.who==="jobs"?2:0,why:"Continuous sources suit event paths; scheduled jobs concentrate load into runs."},
+ L1:{n:"Biggest message",s:[["S","≤ 250 KB"],["M","250 KB–1 MB"],["L","1–10 MB"],["XL","10–30 MB"],["XXL","> 30 MB"]],i:b=>{const m=b/MB;return m<=.25?0:m<=1?1:m<=10?2:m<=30?3:4},why:"Every layer has a size limit, and the biggest message is the one that gets rejected."},
+ L2:{n:"Biggest vs normal",s:[["Uniform","< 10×"],["Variable","10–100×"],["Extreme","> 100×"]],i:v=>v<10?0:v<=100?1:2,why:"Design to the biggest, cost to the normal one."},
+ C1:{n:"Records per message",s:[["Single","1"],["Set","2–1k"],["Bulk","1k–50k"],["Mass","> 50k"]],i:v=>v<=1?0:v<=1000?1:v<=50000?2:3,why:"Sets fit batch calls; bulk and mass need bulk or file interfaces."},
+ P1:{n:"Work per record",s:[["W1","pass-through"],["W2","medium transformation"],["W3","heavy orchestration"]],i:()=>({w1:0,w2:1,w3:2})[I.work],why:"Work per record times rate gives how many are in process at once."},
+ D1:{n:"Freshness need",s:[["Real-time","seconds"],["Async","minutes"],["Async","within the hour"],["Batch","next day"]],i:()=>({sec:0,min:1,hour:2,day:3})[I.fresh],why:"Fast freshness rules out batch paths and is hurt by queues at peak."},
+ D3:{n:"Growth in 3 years",s:[["Stable","≤ 2×"],["Growing","2–5×"],["Explosive","> 5×"]],i:v=>v<=2?0:v<5?1:2,why:"Growth moves the interface across bands; the 3-year view shows where."}
+};
+function profileRows(t,y){
+ const h=t.how.map(x=>`${x[0]}: <span>${x[1]}</span> = <b>${fmt(x[2])}</b>`).join("<br>");
+ return [
+  ["Busiest hour","L3",fmt(t.R),fmt(y.R),t.msgs,y.msgs,`${h}${t.rpm>1?`<br>Messages = records ÷ ${fmt(t.rpm)} per message = <b>${fmt(t.msgs)}</b>`:""}`],
+  ["Peak vs average","L4","×"+fmt(t.ratio),"×"+fmt(y.ratio),t.ratio,y.ratio,`Average hour = day ${fmt(t.daily)} ÷ 24 = ${fmt(t.avg)}; busiest ${fmt(t.R)} ÷ ${fmt(t.avg)} = ×${fmt(t.ratio)}`],
+  ["Run behaviour","L5",WHO[I.who],"",0,0,`From "who creates the data" on the Source.`],
+  ["Biggest message","L1",fmtB(t.msgB),fmtB(y.msgB),t.msgB,y.msgB,I.sizeMode==="calc"?`Calculated on the Message: ${fmtB(t.big)} per record${I.att?" incl. attachment":""}${t.rpm>1?`, (${fmt(t.rpm)} − 1) × ${fmtB(t.typ)} + ${fmtB(t.big)}`:""}`:`Entered on the Message${I.att?", plus the attachment":""}${t.rpm>1?`; ${fmt(t.rpm)} records grouped`:""}.`],
+  ["Biggest vs normal","L2","×"+fmt(t.msgB/t.msgT),"",t.msgB/t.msgT,y.msgB/y.msgT,`${fmtB(t.msgB)} ÷ ${fmtB(t.msgT)}`],
+  ["Records per message","C1",fmt(t.rpm),"",t.rpm,y.rpm,I.multi?"Set on the Message.":"One record per message (default)."],
+  ["Work per record","P1",fmtS(t.secs),"",0,0,`${({w1:"Pass-through",w2:"Medium transformation",w3:"Heavy orchestration"})[I.work]} ≈ ${fmtS(t.secs)} (settings).`],
+  ["In process at once","",fmt(t.inproc),fmt(y.inproc),null,null,`busiest hour ${fmt(t.R)} ÷ 3600 × ${fmtS(t.secs)} = ${fmt(t.inproc)} (Little's law)`],
+  ["Freshness need","D1",({sec:"seconds",min:"minutes",hour:"the hour",day:"next day"})[I.fresh],"",0,0,"Set on the Target."],
+  ["Growth","D3","×"+t.g,"×"+y.g,I.growth,I.growth,"Set on the Source."]];
+}
+
+/* ================= diagram ================= */
+const ST={src:{name:"Source",sub:"who · where · growth",x:110,y:215},inf:{name:"Influx",sub:"how many · when",x:305,y:215},msg:{name:"Message",sub:"how big",x:305,y:95},
+ mid:{name:"Middleware",sub:"work per record",x:500,y:215},del:{name:"Delivery",sub:"how it's handed over",x:695,y:215},tgt:{name:"Target",sub:"capacity · freshness",x:890,y:215}};
+const ORDER=["src","msg","inf","mid","del","tgt"];
+const colorOf=z=>z?{F:"var(--fit)",A:"var(--ad)",B:"var(--be)"}[z]:"var(--idle)";
+const bgOf=z=>z?{F:"var(--fitbg)",A:"var(--adbg)",B:"var(--bebg)"}[z]:"var(--idlebg)";
+const GLYPH={src:'<rect x="-20" y="-15" width="40" height="28" rx="4"/><path d="M-9 20h18M0 13v7"/><circle cx="-9" cy="-3" r="3.5"/><path d="M-1 -5h12M-1 1h8"/>',
+ mid:'<g class="spin" id="gearG"><circle r="7"/><path d="M0 -19v6M0 13v6M-19 0h6M13 0h6M-13.4 -13.4l4.2 4.2M9.2 9.2l4.2 4.2M-13.4 13.4l4.2 -4.2M9.2 -9.2l4.2 -4.2"/></g>',
+ tgt:'<ellipse cx="0" cy="-13" rx="16" ry="6"/><path d="M-16 -13v26c0 3.3 7.2 6 16 6s16-2.7 16-6v-26"/><path d="M-16 0c0 3.3 7.2 6 16 6s16-2.7 16-6"/>'};
+function draw(){
+ const y3=view==="y3",{c,res}=evaluateAll(y3),T=I.touched,PZ=partZones(res[0]),zz=k=>T[k]&&PZ[k]?PZ[k].z:(T[k]?"F":null);
+ const vol=Math.log10(Math.max(10,c.R)),thick=Math.min(30,6+(vol-1)*4),speed=Math.max(.35,3.2-(vol-1)*.45);
+ const gearSpeed=Math.max(.6,8-Math.min(7,c.inproc/7)),msgScale=Math.min(1.6,.7+Math.log10(Math.max(1,c.msgB/1024))/5);
+ let s="";
+ const pipe=(k,x1,x2,y,th)=>{const col=colorOf(zz(k));return `<g class="hit" data-k="${k}" tabindex="0" role="button" aria-label="${ST[k].name}"><rect x="${x1}" y="${y-28}" width="${x2-x1}" height="56" fill="transparent"/>
+  <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${bgOf(zz(k))}" stroke-width="${th+10}" stroke-linecap="round"/><line class="ring" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${col}" stroke-width="${th}" stroke-linecap="round" opacity=".35"/>
+  <line class="dots" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${col}" stroke-width="${Math.max(4,th*.45)}" stroke-dasharray="4 20" stroke-linecap="round" style="animation-duration:${speed}s"/>
+  <path d="M${x2+4} ${y-9} L${x2+16} ${y} L${x2+4} ${y+9}" fill="${col}"/><text class="nodeLbl" x="${(x1+x2)/2}" y="${y+46}" style="font-size:15px">${ST[k].name}</text>
+  <text class="nodeSub" x="${(x1+x2)/2}" y="${y+63}">${k==="inf"&&T.inf?fmt(c.R)+" in the busiest hour":k==="del"&&T.del?({one:"one per call",small:"small batches",bulk:"bulk or file"})[I.send]:ST[k].sub}</text>
+  ${zz(k)?`<text class="zoneTxt" x="${(x1+x2)/2}" y="${y+81}" fill="${col}">${VL[zz(k)]}</text>`:""}</g>`;};
+ s+=pipe("inf",172,412,215,thick);s+=pipe("del",588,812,215,Math.max(6,thick*(I.send==="one"?1:I.send==="small"?.7:.5)));
+ if(T.inf){const mx=Math.max(...c.H)||1;s+=`<g pointer-events="none">${c.H.map((v,h)=>`<rect x="${196+h*8}" y="${186-thick/2-26*v/mx}" width="6" height="${26*v/mx+1}" rx="1.5" fill="${h===c.peakH?colorOf(zz("inf")):"var(--idle)"}" opacity="${h===c.peakH?1:.6}"/>`).join("")}<text x="196" y="${186-thick/2-32}" style="font-size:10px;fill:var(--mute)">UTC 0h</text><text x="390" y="${186-thick/2-32}" text-anchor="end" style="font-size:10px;fill:var(--mute)">24h</text></g>`;}
+ {const {x,y}=ST.msg,col=colorOf(zz("msg")),sc=msgScale;s+=`<line x1="${x}" y1="${y+30}" x2="${x}" y2="${T.inf?150:195-thick/2}" stroke="var(--idle)" stroke-dasharray="3 4"/>
+  <g class="hit" data-k="msg" tabindex="0" role="button" aria-label="Message"><g transform="translate(${x} ${y}) scale(${sc})"><rect class="ring" x="-30" y="-20" width="60" height="40" rx="6" fill="${bgOf(zz("msg"))}" stroke="${col}" stroke-width="3"/><path d="M-28 -17l28 20 28-20" fill="none" stroke="${col}" stroke-width="2.6" stroke-linejoin="round"/>
+  ${c.rpm>1?`<rect x="-26" y="-26" width="60" height="40" rx="6" fill="none" stroke="${col}" stroke-width="1.6" opacity=".5"/><rect x="-22" y="-32" width="60" height="40" rx="6" fill="none" stroke="${col}" stroke-width="1.2" opacity=".3"/>`:""}
+  ${I.att?`<g transform="translate(22 6)"><rect x="-8" y="-10" width="16" height="20" rx="2" fill="var(--card)" stroke="${col}" stroke-width="2"/><path d="M-4 -3h8M-4 2h8" stroke="${col}" stroke-width="1.6"/></g>`:""}</g>
+  <text class="nodeLbl" x="${x-58*sc-8}" y="${y-2}" style="text-anchor:end;font-size:15px">${I.objName?esc(I.objName):"Message"}</text>
+  <text class="nodeSub" x="${x-58*sc-8}" y="${y+15}" style="text-anchor:end">${T.msg?fmtB(c.msgB)+" biggest":"how big"}</text>
+  ${zz("msg")?`<text class="zoneTxt" x="${x+40*sc+8}" y="${y+5}" fill="${col}" style="text-anchor:start">${VL[zz("msg")]}</text>`:""}</g>`;}
+ ["src","mid","tgt"].forEach(k=>{const {x,y}=ST[k],z=zz(k),col=colorOf(z),nm=k==="src"?I.srcName:k==="mid"?I.midName:I.tgtName,cap=S["cap_"+I.absorb]||10,f=I.send==="small"?S.smallF:I.send==="bulk"?S.bulkF:1,fill=Math.min(1,c.R/3600*S.tgtT/f/cap);
+  s+=`<g class="hit" data-k="${k}" tabindex="0" role="button" aria-label="${ST[k].name}"><circle class="ring" cx="${x}" cy="${y}" r="58" fill="${bgOf(z)}" stroke="${col}" stroke-width="3.5"/>
+  ${k==="tgt"?`<clipPath id="tclip"><circle cx="${x}" cy="${y}" r="55"/></clipPath><rect clip-path="url(#tclip)" x="${x-58}" y="${y+55-110*fill}" width="116" height="${110*fill}" fill="${col}" opacity=".18"/>`:""}
+  <g transform="translate(${x} ${y-6})" class="glyph" style="stroke:${z?col:"var(--ink)"}">${GLYPH[k]}</g>
+  <text class="nodeLbl" x="${x}" y="${y+86}">${ST[k].name}</text><text class="nodeSub" x="${x}" y="${y+103}">${nm?esc(nm):ST[k].sub}</text>
+  ${z?`<text class="zoneTxt" x="${x}" y="${y+121}" fill="${col}">${VL[z]}</text>`:`<text x="${x}" y="${y+42}" text-anchor="middle" style="font-size:11px;fill:var(--mute)">tap</text>`}
+  ${k==="src"&&c.massRate&&T.src?`<g transform="translate(${x+44} ${y-46})" class="pulse"><circle r="15" fill="var(--card)" stroke="${col}" stroke-width="2"/><text y="5" text-anchor="middle" style="font-size:14px;font-weight:800;fill:${col}">!</text></g>`:""}</g>`;});
+ const svg=document.getElementById("svg");svg.innerHTML=s;
+ const g=document.getElementById("gearG");if(g)g.style.animationDuration=gearSpeed+"s";
+ svg.querySelectorAll(".hit").forEach(el=>{el.onclick=e=>{e.stopPropagation();openCard(el.dataset.k,el)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCard(el.dataset.k,el)}}});
+ document.getElementById("hint").style.display=Object.keys(T).length?"none":"block";
+ renderResults(c,res);
+}
+
+/* ================= cards ================= */
+const chips=(id,label,opts,sm)=>`<div class="fld"><div class="lab"><span>${label}</span>${sm?`<span class="sm">${sm}</span>`:""}</div><div class="chips">${opts.map(o=>`<button class="chip${String(I[id])===String(o[0])?" on":""}" data-chip="${id}" data-v="${o[0]}"${typeof o[0]==="number"?' data-n="1"':""}>${o[1]}${o[2]?`<span class="sm"> · ${o[2]}</span>`:""}</button>`).join("")}</div></div>`;
+const num=(id,label,unit,extra)=>`<div class="fld numrow"><label for="n_${id}" id="lab_${id}">${label}</label><span><input type="number" min="0" step="any" id="n_${id}" data-num="${id}" value="${I[id]}"> ${unit||""}${extra||""}</span></div>`;
+const unitSel=id=>` <select data-sel="${id}"><option${I[id]==="KB"?" selected":""}>KB</option><option${I[id]==="MB"?" selected":""}>MB</option></select>`;
+const info=(id,label,ph)=>`<div class="fld infoRow"><div class="lab"><span>${label}<span class="infoTag">for info</span></span></div><input type="text" data-txt="${id}" value="${esc(I[id])}" placeholder="${ph}"></div>`;
+const infoChips=(id,label,opts)=>`<div class="fld infoRow"><div class="lab"><span>${label}<span class="infoTag">for info</span></span></div><div class="chips">${opts.map(o=>`<button class="chip${I[id]===o[0]?" on":""}" data-chip="${id}" data-v="${o[0]}">${o[1]}</button>`).join("")}</div></div>`;
+const check=(id,label)=>`<label class="chk"><input type="checkbox" data-chk="${id}" ${I[id]?"checked":""}> ${label}</label>`;
+function cardBody(k){
+ if(k==="src")return `<p class="why">Who creates the data, where, and how it grows.</p>
+  ${info("srcName","Source system","e.g. CRM, web shop")}
+  ${chips("who","Who creates the data?",[["human","Human"],["app","Application or process"],["jobs","Scheduled jobs"]])}
+  ${num("countries","In how many countries at full rollout?","")}
+  ${chips("where","Where are those countries?",[["one","One region"],["two","Two regions"],["world","Worldwide"]],"regions peak at different hours")}
+  ${chips("growth","Growth in 3 years?",[[1,"Same"],[2,"Doubles"],[3,"×3"],[5,"×5 or more"]])}
+  <div id="massQ" ${I.who==="human"?"hidden":""}>${chips("mass","Any mass loads?",[["no","No"],["yes","Yes"]],"mass updates, initial loads")}
+  <div id="massBox" ${I.mass==="yes"?"":"hidden"}>${num("massRec","Records in one mass load","records")}${num("massWin","Must finish within","hours")}</div></div>`;
+ if(k==="msg")return `<p class="why">How big one message gets. The biggest one counts.</p>
+  ${info("objName","Business object","e.g. Sales order")}
+  ${infoChips("content","Content",[["trans","Transaction data"],["master","Master data"],["doc","Document"]])}
+  ${chips("sizeMode","Size",[["known","I know it"],["calc","Calculate it"]])}
+  <div id="szKnown" ${I.sizeMode==="known"?"":"hidden"}>${num("sizeVal","Normal size","",unitSel("sizeUnit"))}${num("bigVal","Biggest size","",unitSel("bigUnit"))}</div>
+  <div id="szCalc" ${I.sizeMode==="calc"?"":"hidden"}>
+   ${chips("fmtType","Format",[["json","JSON"],["xml","XML"],["csv","CSV"],["idoc","IDoc"]])}
+   ${chips("struct","Structure",[["flat","One flat record"],["hdr","Header + lines"]])}
+   ${num("hdrFields",I.struct==="hdr"?"Fields in the header":"Fields in the record","")}
+   <div id="lineBox" ${I.struct==="hdr"?"":"hidden"}>${num("lineFields","Fields per line","")}${num("linesT","Lines, normal","")}${num("linesM","Lines, biggest","")}</div>
+   <div class="calcBox" id="szOut"></div></div>
+  ${check("att","Has an attachment")}<div id="attBox" ${I.att?"":"hidden"}>${num("attKB","Attachment size","KB")}</div>
+  ${check("multi","Several records per message")}<div id="multiBox" ${I.multi?"":"hidden"}>${num("rpm","Records per message","")}</div>`;
+ if(k==="inf")return `<p class="why">How many arrive, and when. Countries in different regions don't peak in the same hour.</p>
+  ${chips("know","What do you know?",[["hour","Busiest hour"],["day","Per day"],["month","Per month"],["est","Not known: estimate"]])}
+  <div id="knownBox" ${I.know==="est"?"hidden":""}>${chips("scope","For",[["one","One typical country"],["all","All countries together"]])}${num("qty",({hour:"Records in the busiest hour",day:"Records per day",month:"Records per month"})[I.know]||"Records","")}</div>
+  <div id="estBox" ${I.know==="est"?"":"hidden"}>${num("estN","How many create it? (people, customers, systems)","")}${num("estF","How often each, per day","")}<div class="note">Across all countries together.</div></div>
+  ${chips("dayF","How much bigger is the busiest day?",[[1,"Normal"],[1.5,"×1.5"],[2,"×2"],[3,"×3"],[5,"×5"]],"month-end, campaigns")}
+  <div class="calcBox" id="infOut"></div>`;
+ if(k==="mid")return `<p class="why">How much work happens to each record on the way. The result shows how each pattern copes.</p>
+  ${info("midName","Flow name","e.g. Order enrichment")}
+  ${chips("work","Work per record",[["w1","Pass-through"],["w2","Medium transformation"],["w3","Heavy orchestration"]])}`;
+ if(k==="del")return `<p class="why">How data is handed to the target.</p>
+  ${chips("send","Handed over as",[["one","One record per call"],["small","Small batches"],["bulk","Bulk or file"]])}`;
+ if(k==="tgt")return `<p class="why">How much the target absorbs, and how quickly data must appear.</p>
+  ${info("tgtName","Target system","e.g. S/4HANA")}
+  ${chips("absorb","How much can it take at the same time?",[["few","A few","e.g. S/4"],["dozens","Dozens"],["hundreds","Hundreds"]])}
+  ${chips("fresh","How quickly must data appear?",[["sec","Seconds"],["min","Minutes"],["hour","Within the hour"],["day","Next day"]])}`;
+}
+function openCard(k,el){
+ open=k;I.touched[k]=1;saveIn();
+ document.querySelectorAll(".pop").forEach(p=>p.remove());
+ const pop=document.createElement("div");pop.className="pop"+(k==="msg"||k==="inf"||k==="src"?" wide":"");pop.id="pop";
+ pop.innerHTML=`<button class="x" aria-label="Close">×</button><h3>${ST[k].name}</h3>${cardBody(k)}<div id="cardVerdict"></div>`;
+ const stage=document.getElementById("stage");stage.appendChild(pop);
+ const sr=stage.getBoundingClientRect(),er=el.getBoundingClientRect(),w=pop.offsetWidth;
+ let left=er.left-sr.left+er.width/2-w/2;left=Math.max(8,Math.min(left,sr.width-w-8));
+ pop.style.left=left+"px";pop.style.top=(er.bottom-sr.top+6)+"px";
+ pop.addEventListener("click",e=>e.stopPropagation());pop.querySelector(".x").onclick=closeCard;
+ const show=(i,c)=>{const e=document.getElementById(i);if(e)e.hidden=!c};
+ pop.querySelectorAll("[data-num]").forEach(r=>r.addEventListener("input",()=>{const v=parseFloat(r.value);if(isFinite(v)&&v>=0){I[r.dataset.num]=v;update();}}));
+ pop.querySelectorAll("[data-txt]").forEach(r=>r.addEventListener("input",()=>{I[r.dataset.txt]=r.value;update();}));
+ pop.querySelectorAll("[data-sel]").forEach(r=>r.addEventListener("change",()=>{I[r.dataset.sel]=r.value;update();}));
+ pop.querySelectorAll("[data-chk]").forEach(r=>r.addEventListener("change",()=>{I[r.dataset.chk]=r.checked;show("attBox",I.att);show("multiBox",I.multi);update();}));
+ pop.querySelectorAll("[data-chip]").forEach(b=>b.onclick=()=>{const id=b.dataset.chip;I[id]=b.dataset.n?+b.dataset.v:b.dataset.v;
+  pop.querySelectorAll(`[data-chip="${id}"]`).forEach(x=>x.classList.toggle("on",x===b));
+  if(id==="who")show("massQ",I.who!=="human");
+  if(id==="mass")show("massBox",I.mass==="yes");
+  if(id==="sizeMode"){show("szKnown",I.sizeMode==="known");show("szCalc",I.sizeMode==="calc");}
+  if(id==="struct"){show("lineBox",I.struct==="hdr");document.getElementById("lab_hdrFields").textContent=I.struct==="hdr"?"Fields in the header":"Fields in the record";}
+  if(id==="know"){show("knownBox",I.know!=="est");show("estBox",I.know==="est");const l=document.getElementById("lab_qty");if(l)l.textContent=({hour:"Records in the busiest hour",day:"Records per day",month:"Records per month"})[I.know]||"Records";}
+  update();});
+ update();
+}
+function closeCard(){open=null;document.querySelectorAll(".pop").forEach(p=>p.remove());document.getElementById("stage").style.minHeight="";}
+function update(){
+ saveIn();const pop=document.getElementById("pop");draw();if(!pop)return;
+ document.getElementById("stage").appendChild(pop);
+ const {c,res}=evaluateAll(view==="y3"),best=res[0];
+ const so=document.getElementById("szOut");
+ if(so&&I.sizeMode==="calc"){const d=sizeCalc();so.innerHTML=`<b>Calculated size</b><table class="nums" style="margin-top:4px">${d.pf?`<tr><td>Per field <span class="f">${esc(d.note)}</span></td><td>${fmtB(d.pf)}</td></tr>`:`<tr><td colspan="2" class="f">${esc(d.note)}</td></tr>`}
+  <tr><td>Envelope + ${d.lines?"header":"record"}</td><td>${fmtB(d.env+d.hB)}</td></tr>${d.lines?`<tr><td>Per line</td><td>${fmtB(d.lB)}</td></tr>`:""}
+  <tr><td><b>Normal</b></td><td>${fmtB(d.typ)}</td></tr><tr><td><b>Biggest</b></td><td>${fmtB(d.big)}</td></tr></table>`;}
+ const io=document.getElementById("infOut");
+ if(io){const t=calc(false);io.innerHTML=`<b>How the busiest hour is worked out</b><table class="nums" style="margin-top:4px">${t.how.map(x=>`<tr><td>${x[0]}<br><span class="f">${x[1]}</span></td><td>${fmt(x[2])}</td></tr>`).join("")}</table>`;}
+ const mine=best.e.ch.filter(x=>x.part===open);
+ document.getElementById("cardVerdict").innerHTML=mine.length?`<div class="verdictBox ${mine.reduce((a,x)=>RK[x.z]>RK[a]?x.z:a,"F")}"><b>In the best pattern (${best.p.n})${view==="y3"?", in 3 years":""}</b><ul class="plat">${mine.map(x=>`<li><span class="zc ${x.z}">${VL[x.z]}</span><span class="pl">${esc(x.plat)}</span><span class="pm">${x.metric} · ${x.why}</span></li>`).join("")}</ul></div>`:"";
+ setTimeout(()=>{const p=document.getElementById("pop");if(p&&getComputedStyle(p).position==="absolute")document.getElementById("stage").style.minHeight=(p.offsetTop+p.offsetHeight+16)+"px";},0);
+}
+document.addEventListener("click",e=>{if(open&&!e.target.closest(".pop")&&!e.target.closest(".hit"))closeCard();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeCard();closeSet();}});
+
+/* ================= results ================= */
+let expP=null,expB=null;
+function renderResults(c,res){
+ const T=I.touched,any=Object.keys(T).length;
+ const pill=document.getElementById("riskPill"),txt=document.getElementById("riskText");
+ const best=res[0],y=evaluateAll(true).res.find(r=>r.p.id===best.p.id);
+ if(!any){pill.className="risk N";pill.textContent="–";txt.textContent="Answer the parts of the flow to see the result.";}
+ else{const r=best.e.v==="F"?"L":best.e.v==="B"?"H":"M";pill.className="risk "+r;pill.textContent={L:"Low risk",M:"Medium risk",H:"High risk"}[r];
+  const worst=best.e.ch.filter(x=>x.z!=="F").sort((a,b)=>RK[b.z]-RK[a.z])[0];
+  txt.innerHTML=`Best pattern: <b>${best.p.n}</b> — ${VL[best.e.v]}${view==="now"?`, ${VL[y.e.v]} in 3 years`:""}. ${worst?`Main issue: ${esc(worst.plat)} — ${worst.why}.`:"No issues found."}${ORDER.filter(k=>T[k]).length<6?` <span class="note">(${ORDER.filter(k=>T[k]).length} of 6 parts answered; the rest use defaults)</span>`:""}`;}
+ const yAll=evaluateAll(true).res;
+ document.getElementById("ptbl").innerHTML=`<tr><th>Pattern</th><th>Today</th><th>3 years</th><th>Main risk</th></tr>`+res.map(r=>{const ry=yAll.find(x=>x.p.id===r.p.id),w=r.e.ch.filter(x=>x.z!=="F").sort((a,b)=>RK[b.z]-RK[a.z])[0];
+  return `<tr class="prow" data-p="${r.p.id}"><td><div class="pn">${expP===r.p.id?"▾":"▸"} ${r.p.n}</div><div class="pc">${r.p.c}</div></td><td><span class="zc ${r.e.v}">${VL[r.e.v]}</span></td><td><span class="zc ${ry.e.v}">${VL[ry.e.v]}</span></td><td class="note">${w?esc(w.plat)+": "+w.why:"none"}</td></tr>`+
+  (expP===r.p.id?`<tr><td colspan="4"><ul class="plat">${r.e.ch.map(x=>`<li><span class="zc ${x.z}">${VL[x.z]}</span><span class="pl">${esc(x.plat)}</span><span class="pm">${x.metric} · ${x.why}</span></li>`).join("")}</ul></td></tr>`:"");}).join("");
+ document.querySelectorAll(".prow").forEach(tr=>tr.onclick=e=>{e.stopPropagation();expP=expP===tr.dataset.p?null:tr.dataset.p;renderResults(c,res);});
+ const t=calc(false),yy=calc(true),rows=profileRows(t,yy);
+ document.getElementById("prof").innerHTML=`<tr><th>Measure</th><th style="text-align:right">Today</th><th style="text-align:right">3 years</th><th>Band</th></tr>`+rows.map((r,i)=>{const B=r[1]?BANDS[r[1]]:null,bi=B?B.i(r[4]):null,by=B?B.i(r[5]):null;
+  return `<tr><td>${r[0]}</td><td class="v">${r[2]}</td><td class="v">${r[3]}</td><td>${B?`<span class="bd" data-b="${i}">${r[1]} ${B.s[bi][0]}</span>${by!==bi?` → <span class="bd" data-b="${i}">${B.s[by][0]}</span>`:""}`:`<span class="bd" data-b="${i}">how</span>`}</td></tr>`+
+  (expB===i?`<tr class="expl"><td colspan="4">${B?`<b>${r[1]} · ${B.n}</b><div class="scale">${B.s.map((s,j)=>`<span class="${j===bi?"on":""}">${s[0]} ${s[1]}</span>`).join("")}</div>`:""}<span class="f">${r[6]}</span>${B?`<span class="note">${B.why}</span>`:""}</td></tr>`:"");}).join("");
+ document.querySelectorAll("#prof .bd").forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.b;expB=expB===i?null:i;renderResults(c,res);});
+ window._sum=()=>{const L=[`Interface: ${I.objName||"(unnamed)"} · Source: ${I.srcName||"–"} · Flow: ${I.midName||"–"} · Target: ${I.tgtName||"–"}`,`Result (${view==="y3"?"in 3 years":"today"}): ${pill.textContent}. Best pattern: ${best.p.n} (${VL[best.e.v]}).`,"Patterns:"];
+  res.forEach(r=>L.push(`- ${r.p.n}: ${VL[r.e.v]}`+r.e.ch.filter(x=>x.z!=="F").map(x=>`; ${x.plat} ${VL[x.z]} (${x.why})`).join("")));
+  L.push("Profile:");rows.forEach(r=>L.push(`- ${r[0]}: ${r[2]}${r[3]?" today, "+r[3]+" in 3 years":""}`));return L.join("\n");};
+}
+document.getElementById("copy").onclick=async e=>{e.stopPropagation();try{await navigator.clipboard.writeText(window._sum());document.getElementById("copied").textContent="Copied";}catch(err){document.getElementById("copied").textContent="Copy not allowed here";}};
+
+/* ================= settings modal ================= */
+function openSet(){
+ const bg=document.createElement("div");bg.className="modalBg";bg.id="setBg";
+ bg.innerHTML=`<div class="modal"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Settings</h2><button class="btn" id="setClose">Done</button></div>
+ <p class="note">For architects. Confidence: A = official doc, B = vendor KBA, C = secondary, E = empirical, to calibrate. Stored in this browser only.</p>
+ ${SET_DEF.map(g=>`<h4>${g.g}</h4><table>${g.items.map(([k])=>`<tr id="sr_${k}"><td>${SM[k].l}</td><td style="text-align:right"><input type="number" step="any" id="s_${k}" value="${S[k]}"></td><td class="note">${SM[k].u}</td><td class="note">default ${SM[k].d}</td><td class="conf">${SM[k].c}</td></tr>`).join("")}</table>`).join("")}
+ <h4>Daily curves (relative load per local hour, 0–23)</h4><p class="note" style="margin:2px 0 6px">24 values each, comma-separated, any scale.</p>
+ ${Object.keys(RAW).map(k=>`<div class="fld" id="cr_${k}"><div class="lab"><span>${WHO[k]}</span><span class="sm" id="cpk_${k}"></span></div><input type="text" data-curve="${k}" value="${RAW[k].join(", ")}" style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-size:12px"><svg viewBox="0 0 240 30" style="width:100%;height:30px;margin-top:4px" id="csv_${k}"></svg></div>`).join("")}
+ <div style="margin-top:12px"><button class="btn" id="setReset">Reset to defaults</button></div></div>`;
+ document.body.appendChild(bg);
+ const curveChg=()=>Object.keys(RAW).some(k=>JSON.stringify(RAW[k])!==JSON.stringify(RAW_DEF[k]));
+ const spark=k=>{const mx=Math.max(...CURVE[k])||1;document.getElementById("csv_"+k).innerHTML=CURVE[k].map((v,h)=>`<rect x="${h*10}" y="${30-28*v/mx}" width="8" height="${28*v/mx}" rx="1.5" fill="${v===mx?"var(--acc)":"var(--idle)"}"/>`).join("");document.getElementById("cpk_"+k).textContent=`peak ${(peakShare(k)*100).toFixed(1)}% at ${CURVE[k].indexOf(peakShare(k))}:00`;};
+ const paint=()=>{Object.keys(S).forEach(k=>document.getElementById("sr_"+k).classList.toggle("chg",S[k]!==SM[k].d));Object.keys(RAW).forEach(k=>document.getElementById("cr_"+k).classList.toggle("chg",JSON.stringify(RAW[k])!==JSON.stringify(RAW_DEF[k])));document.getElementById("gear").classList.toggle("mod",Object.keys(S).some(k=>S[k]!==SM[k].d)||curveChg());};
+ Object.keys(S).forEach(k=>document.getElementById("s_"+k).addEventListener("input",e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S[k]=v;saveSet();paint();draw();}}));
+ Object.keys(RAW).forEach(k=>{spark(k);const inp=bg.querySelector(`[data-curve="${k}"]`);inp.addEventListener("input",()=>{const a=inp.value.split(/[,;\s]+/).filter(x=>x!=="").map(Number);const ok=a.length===24&&a.every(x=>isFinite(x)&&x>=0)&&a.some(x=>x>0);inp.style.borderColor=ok?"var(--line)":"var(--be)";if(ok){RAW[k]=a;buildCurves();saveCurves();spark(k);paint();draw();}});});
+ bg.onclick=e=>{if(e.target===bg)closeSet()};document.getElementById("setClose").onclick=closeSet;
+ document.getElementById("setReset").onclick=()=>{Object.keys(S).forEach(k=>{S[k]=SM[k].d;document.getElementById("s_"+k).value=S[k]});Object.keys(RAW).forEach(k=>{RAW[k]=RAW_DEF[k].slice();bg.querySelector(`[data-curve="${k}"]`).value=RAW[k].join(", ");});buildCurves();saveCurves();Object.keys(RAW).forEach(spark);saveSet();paint();draw();};
+ paint();
+}
+function closeSet(){const b=document.getElementById("setBg");if(b)b.remove();}
+document.getElementById("gear").onclick=e=>{e.stopPropagation();closeCard();openSet();};
+document.getElementById("gear").classList.toggle("mod",Object.keys(S).some(k=>S[k]!==SM[k].d)||Object.keys(RAW).some(k=>JSON.stringify(RAW[k])!==JSON.stringify(RAW_DEF[k])));
+
+/* ================= wiring ================= */
+document.getElementById("vNow").onclick=e=>{e.stopPropagation();view="now";vNow.classList.add("on");vY3.classList.remove("on");update()};
+document.getElementById("vY3").onclick=e=>{e.stopPropagation();view="y3";vY3.classList.add("on");vNow.classList.remove("on");update()};
+document.getElementById("clr").onclick=e=>{e.stopPropagation();closeCard();closeSet();try{localStorage.removeItem("fc3_in")}catch(err){}I=JSON.parse(JSON.stringify(DEF));expP=null;expB=null;view="now";vNow.classList.add("on");vY3.classList.remove("on");draw();};
+draw();
+</script>
+</body>
+</html>

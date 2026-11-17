@@ -1,0 +1,329 @@
+<style>
+.topBtns{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.gDrawerBg{position:fixed;inset:0;background:rgba(10,12,20,.38);z-index:60;display:flex;justify-content:flex-end}
+.gDrawer{width:min(1080px,100%);height:100%;background:var(--bg);display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(0,0,0,.18);animation:gIn .22s ease-out}
+@keyframes gIn{from{transform:translateX(40px);opacity:.4}}
+.gHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--card)}
+.gHead h2{margin:0;font-size:18px}
+.gHead .note{margin:0}
+.gBody{flex:1;display:flex;min-height:0}
+.gNav{width:230px;flex:none;border-right:1px solid var(--line);padding:12px 8px;overflow:auto;background:var(--card)}
+.gNav button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;color:var(--ink);padding:9px 10px;border-radius:9px;font-size:13.5px;cursor:pointer}
+.gNav button:hover{background:var(--accbg)}
+.gNav button.on{background:var(--accbg);color:var(--acc);font-weight:700}
+.gNav .num{font-size:11px;font-weight:800;color:var(--mute);width:16px}
+.gNav .grp{font-size:10.5px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;padding:12px 10px 4px}
+.gMain{flex:1;overflow:auto;padding:22px 30px 60px}
+.gMain h3{font-size:22px;margin:0 0 4px}
+.gMain h4{font-size:15px;margin:22px 0 6px}
+.gMain p,.gMain li{font-size:14px;line-height:1.55}
+.gMain ul{padding-left:20px;margin:6px 0}
+.gLead{font-size:15px!important;color:var(--mute)}
+.gMain table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.gMain th{text-align:left;font-size:11.5px;color:var(--mute);font-weight:700;padding:6px 6px;border-bottom:1.5px solid var(--line)}
+.gMain td{padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+.gMain td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gMain a{color:var(--acc)}
+.cfB{display:inline-block;min-width:18px;text-align:center;font-size:11px;font-weight:800;border-radius:5px;padding:1px 5px;background:var(--accbg);color:var(--acc)}
+.cfB.E{background:var(--adbg);color:var(--ad)}.cfB.C{background:var(--idlebg);color:var(--mute)}
+.fBox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.fBox .fh{font-weight:800;font-size:14px;margin-bottom:4px}
+.fBox code,.fCode{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--accbg);color:var(--ink);border-radius:6px;padding:6px 9px;display:block;margin:6px 0;white-space:pre-wrap}
+.fBox .ex{font-size:12.5px;color:var(--mute)}
+.callout{border-left:4px solid var(--acc);background:var(--accbg);border-radius:0 10px 10px 0;padding:10px 14px;margin:12px 0;font-size:13.5px}
+.callout.warn{border-color:var(--ad);background:var(--adbg)}
+.diff{color:var(--ad);font-weight:700}
+.ok{color:var(--fit);font-weight:700}
+.cardRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:10px 0}
+.miniCard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.miniCard b{display:block;font-size:14px;margin-bottom:4px}
+.miniCard p{font-size:13px!important;margin:0;color:var(--mute)}
+.spark{display:flex;gap:16px;flex-wrap:wrap}
+.spark div{flex:1;min-width:220px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.spark svg{width:100%;height:46px}
+.gSearch{padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font-size:13px;width:200px}
+.deckBg{position:fixed;inset:0;z-index:70;background:#0e1424;display:flex;flex-direction:column}
+.deckTop{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;color:#e6e9f0;font-size:13px}
+.deckTop .btn{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25)}
+.deckBg iframe{flex:1;border:0;width:100%}
+.infoLink{border:0;background:none;color:var(--acc);font-weight:700;font-size:12.5px;cursor:pointer;padding:0}
+@media (max-width:760px){.gNav{width:64px}.gNav button span.t,.gNav .grp{display:none}.gMain{padding:16px}}
+</style>
+<!--GUIDE_BUTTONS
+ <div class="topBtns">
+ <button class="cfgBtn" id="guideBtn" aria-label="Guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h7"/></svg><div><b>Guide</b><span>Ground rules · formulas · how to</span></div></button>
+ <button class="cfgBtn" id="deckBtn" aria-label="Concepts presentation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M10 8l4 2-4 2z"/></svg><div><b>Concepts</b><span>The ideas in 15 slides</span></div></button>
+GUIDE_BUTTONS-->
+<script>
+/* ================= Guide (ground rules · formulas · how to) ================= */
+const G_SRC={
+ solace:["Solace service class options","https://docs.solace.com/Cloud/service-class-limits.htm"],
+ solEnc:["Solace protocol metadata and payload encoding","https://docs.solace.com/API/Protocol-Metadata-Payload-Encoding.htm"],
+ sapScope:["SAP Learning: system scope, Cloud Foundry","https://learning.sap.com/learning-journeys/developing-with-sap-integration-suite/understanding-system-scope-in-the-cloud-foundry-environment"],
+ sapJms:["SAP blog: JMS asynchronous messaging with retry","https://community.sap.com/t5/integration-blog-posts/cloud-integration-configure-asynchronous-messaging-with-retry-using-jms/ba-p/13315669"],
+ sapGuard:["SAP blog: guard against huge messages (2017)","https://blogs.sap.com/2017/06/29/how-to-guard-against-huge-messages/"],
+ sapApim:["SAP KBA 3462229: APIM payload limit","https://userapps.support.sap.com/sap/support/knowledge/en/3462229"],
+ sapNodes:["SAP KBA 3573749: runtime nodes on a tenant","https://userapps.support.sap.com/sap/support/knowledge/en/3573749"],
+ sapAem:["SAP tutorial: AEM with Cloud Integration","https://developers.sap.com/tutorials/aem-integrate-cloud-integration-iflow.html"],
+ sapKafka:["SAP blog: Kafka adapter","https://community.sap.com/t5/technology-blogs-by-sap/cloud-integration-what-you-need-to-know-about-the-kafka-adapter/bc-p/13495073"],
+ laLim:["Logic Apps limits and configuration","https://learn.microsoft.com/azure/logic-apps/logic-apps-limits-and-config"],
+ laHost:["Logic Apps host settings","https://learn.microsoft.com/azure/logic-apps/edit-app-settings-host-settings"],
+ laBench:["Logic Apps Standard sustained processing benchmark","https://techcommunity.microsoft.com/blog/integrationsonazureblog/scaling-logic-apps-standard-%E2%80%93-sustained-event-processing-system/3876663"],
+ laPrice:["Logic Apps Standard plans","https://learn.microsoft.com/azure/logic-apps/logic-apps-pricing"],
+ fnSb:["Functions Service Bus bindings","https://learn.microsoft.com/azure/azure-functions/functions-bindings-service-bus"],
+ fnPrem:["Functions Premium plan","https://learn.microsoft.com/azure/azure-functions/functions-premium-plan"],
+ sbQ:["Service Bus quotas","https://learn.microsoft.com/azure/service-bus-messaging/service-bus-quotas"],
+ sbPerf:["Service Bus Premium performance update (2024)","https://techcommunity.microsoft.com/blog/messagingonazureblog/service-bus-premium-sku-performance-update/4232600"],
+ apimP:["Azure API Management pricing (capacity per unit)","https://azure.microsoft.com/en-us/pricing/details/api-management/"],
+ apimL:["Azure API Management limits","https://learn.microsoft.com/azure/azure-resource-manager/management/azure-subscription-service-limits#api-management-limits"],
+ adfL:["Azure Data Factory limits","https://learn.microsoft.com/azure/azure-resource-manager/management/azure-subscription-service-limits#data-factory-limits"],
+ egL:["Event Grid quotas and limits","https://learn.microsoft.com/azure/event-grid/quotas-limits"],
+ cisco:["Cisco: traffic analysis (busy hour)","https://www.cisco.com/c/en/us/td/docs/ios/solutions_docs/voip_solutions/TA_ISD.html"],
+ ibmSap:["IBM/SAP user-based sizing","https://public.dhe.ibm.com/software/mktsupport/techdocs/erp_sap_user_based.pdf"],
+ sapSizing:["SAP sizing white paper (users and workloads)","https://blogs.sap.com/2023/05/11/white-paper-sap-sizing-solution-based-on-users-and-workloads-part-1/"],
+ div:["Diversity factor","https://en.wikipedia.org/wiki/Diversity_factor"],
+ little:["Little's law, 50 years later","https://people.cs.umass.edu/~emery/classes/cmpsci691st/readings/OS/Littles-Law-50-Years-Later.pdf"],
+ erlang:["Technion: Erlang B/C and QED staffing","https://serveng.technion.ac.il/files/Lectures/QED_lecture_Erlang_B_C.pdf"],
+ kingman:["Kingman's formula","https://en.wikipedia.org/wiki/Kingman%27s_formula"],
+ usl:["Gunther: Universal Scalability Law","https://ar5iv.arxiv.org/html/0808.1431"],
+ lev:["Azure: queue-based load leveling","https://learn.microsoft.com/azure/architecture/patterns/queue-based-load-leveling"],
+ retry:["AWS: limit retries","https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_limit_retries.md"],
+ confl:["Confluent: choosing partitions","https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/"],
+ rfc:["RFC 4648: Base64","https://www.rfc-editor.org/rfc/rfc4648"],
+ idoc:["HCL: IDoc structural format","https://help.hcl-software.com/devops/test/hub/10.1/docs/topics/c_pack_sapr3_IDoc_Structural_Format.html"],
+ adobe:["Adobe: Cyber Monday 2025","https://news.adobe.com/news/2025/12/adobe-cyber-monday-hits-record"]
+};
+const gL=k=>{const s=G_SRC[k];return s?`<a href="${s[1]}" target="_blank" rel="noopener">${s[0]}</a>`:""};
+const gS=(...k)=>k.map(x=>{const s=G_SRC[x];return s?`<a href="${s[1]}" target="_blank" rel="noopener" title="${s[0]}">↗</a>`:""}).join(" ");
+const cfB=c=>`<span class="cfB ${c}">${c}</span>`;
+const gv=k=>{const v=P[k];return typeof v==="number"?(Math.abs(v)>=1000?v.toLocaleString("en-US"):v):v};
+
+/* research values vs settings keys: [key, research value text, conf, verdict ok|diff|note, sources] */
+const G_REV=[
+ ["ciSoftMB","Keep 10 MB as a design choice; matches the 10 MB caps of BTP APIM and the smallest Solace classes","E","ok",["sapApim","solace"]],
+ ["ciGuardMB","Confirmed: SOAP/IDoc sender body 40 MB, attachments 100 MB, HTTP 413 above","B","ok",["sapGuard"]],
+ ["ciCap","No SAP figure exists. Replace by concurrent processes per channel × worker nodes (read nodes from the tenant; 2 assumed)","B/E","diff",["sapJms","sapNodes"]],
+ ["jmsGB","Confirmed 9 GB default; up to 30 GB, 30→100 queues, 150→500 transactions","A","ok",["sapScope"]],
+ ["sbRate","Queue ≈ 6,800 msg/s per MU · topic with 1 subscription ≈ 5,000 · topic with 5 subscriptions ≈ 1,600 (1 KB messages, up to 4 MU)","B","diff",["sbPerf"]],
+ ["sbEntMB","1 MB is the HTTP message and batch limit, not an entity limit; AMQP message up to 100 MB; queue/topic size up to 80 GB","A","diff",["sbQ"]],
+ ["sbMaxMB","Confirmed 100 MB, over AMQP only; throughput drops above 1 MB","A","ok",["sbQ"]],
+ ["apimRps","By tier: Basic ≈ 1,000 · Standard ≈ 2,500 · Premium ≈ 4,000 req/s per unit (Microsoft: for information only); no figure for v2","A*","diff",["apimP"]],
+ ["laSoftMB","Keep; equals the 52,428,800-byte chunk size","A/E","ok",["laHost"]],
+ ["laMaxMB","100 MiB = 104,857,600 bytes without chunking; 1 GB with chunking (not all connectors)","A","ok",["laLim"]],
+ ["laSfCap","No source. Use trigger concurrency (max 100 when on) and throughput ≈ 90 actions/s per WS3 instance, ≈ 100k actions/min per storage account","A/B","diff",["laLim","laBench"]],
+ ["laSlCap","No source. Same model as stateful; stateless For-each and Until limited to 100 items","A/E","diff",["laLim"]],
+ ["laSlMax","Confirmed 5 minutes","A","ok",["laLim"]],
+ ["fnCap","16 concurrent Service Bus calls per instance (docs also say × cores) × instances (≤ 100)","A/E","diff",["fnSb","fnPrem"]],
+ ["solMaxMB","Class-dependent: 10 MB on E100/E250 (older E1K), 30 MB on E1K (later) and above","A","diff",["solace"]],
+ ["solSpoolGB","50 GB is the E250 default only: E100 25 · E1K 200 · E5K 400 · E10K 600 · E50K 800 · E100K 1,000 GB","A","diff",["solace"]],
+ ["fL","No source for ×3 / ×1 / ×0.3: keep as fallback; prefer a volume driver per country (users, orders)","E","note",[]],
+ ["comfort","Replace one comfort % by a utilisation target by pool size: 60–70% (≤ 4 consumers), 70–80% (5–20), 85–90% (> 50); lower for bursty traffic (Kingman)","A/C","diff",["erlang","kingman"]],
+ ["b64","Confirmed: 4/3 × 78/76 = 1.368 (with MIME line breaks)","A","ok",["rfc"]],
+ ["idocSeg","Segment data ≤ 1,000 bytes (C); 1,063 / 524-byte record lengths widely quoted, not confirmed on an SAP page","C/E","note",["idoc"]],
+ ["envB","JSON/XML per-field coefficients and envelope have no source: measure on real messages","E","note",[]]
+];
+
+const G_CH=[
+ {id:"start",grp:"Use",t:"Start here",h:()=>`
+  <h3>Start here</h3><p class="gLead">The calculator places one asynchronous interface on a scale of ranges and checks it against each platform component. It is not platform sizing: it tells you whether the chosen components fit this interface, and where the line is.</p>
+  <div class="cardRow">
+   <div class="miniCard"><b>1 · Describe</b><p>Tap each part of the flow: source, message, influx, middleware, delivery, target. Answer what you know.</p></div>
+   <div class="miniCard"><b>2 · Read the scale</b><p>Each part gets a tag: Standard, Needs attention or Critical. No platform is named yet.</p></div>
+   <div class="miniCard"><b>3 · Read the verdicts</b><p>Below the flow, each platform component is checked for size and for volume: Fit, Adapt, Beyond, Not suitable, Not applicable.</p></div>
+   <div class="miniCard"><b>4 · Trace and adjust</b><p>Every estimate shows its formula. Accept, override, or change a factor for this run. Saved defaults live in ⚙ Calculation settings.</p></div>
+  </div>
+  <h4>Two questions, kept apart</h4>
+  <table><tr><th>Question</th><th>Where</th><th>Labels</th></tr>
+  <tr><td>Is the scale of this part concerning?</td><td>On the flow diagram</td><td><span class="tg S">Standard</span><span class="tg N">Needs attention</span><span class="tg C">Critical</span></td></tr>
+  <tr><td>Does this platform component fit?</td><td>Platform evaluation</td><td>Fit · Adapt · Beyond · Not suitable · Not applicable</td></tr></table>
+  <h4>Confidence labels</h4>
+  <table><tr><td>${cfB("A")}</td><td>Official vendor documentation</td></tr><tr><td>${cfB("B")}</td><td>Vendor blog, KBA or published benchmark</td></tr><tr><td>${cfB("C")}</td><td>Community or secondary source</td></tr><tr><td>${cfB("E")}</td><td>Empirical or assumed: measure on your tenant and calibrate</td></tr></table>
+  <div class="callout">New to the ideas behind it? Open <button class="infoLink" data-deck="1">🎞 Concepts</button>, a 15-slide introduction for architects and designers.</div>`},
+ {id:"use",grp:"Use",t:"How to use, card by card",h:()=>`
+  <h3>How to use, card by card</h3><p class="gLead">Each question is asked once. An answer given in one card is reused everywhere else. Dimmed fields are information only and don't change any number.</p>
+  <h4>Source · who, where, how many</h4><ul>
+   <li><b>Who creates the data</b>: Human, Application or process, Scheduled jobs. Picks the daily curve used for the busiest hour, and whether the mass-load question appears.</li>
+   <li><b>Countries at full rollout</b>, grouped Large / Medium / Small, and the <b>regions</b> (Americas, EMEA, Asia-Pacific). They weight the regional curves.</li>
+   <li><b>Users</b>: the global number if known, or estimated from one or more reference countries (name, size, users). Shown as <i>Estimated users in scope</i>: accept, override, or open the formula.</li>
+   <li><b>Growth in 3 years</b> and, for applications or jobs, a <b>mass load</b> (records and window), checked as its own road.</li></ul>
+  <h4>Message · how big</h4><ul>
+   <li>Give the size directly as bands (normal and biggest), or derive it from format (JSON, XML, CSV, IDoc), fields and lines.</li>
+   <li>Files inside JSON/XML are grown by base64. <i>One message carries</i> is information only.</li>
+   <li>Records per message: only when one message carries several records (a set, a bulk).</li></ul>
+  <h4>Influx · how many, when</h4><ul>
+   <li>Nature first: <b>continuous</b> or <b>scheduled batch</b> (how often, and the run window).</li>
+   <li>Period: per hour, day, week or month. With more than one country, the <b>global</b> volume is asked; if unknown, a typical volume for one country of a size group is extrapolated.</li>
+   <li>Busiest and average on a scale whose edges move with message size (10 messages matter at 50 MB; thousands don't at 10 KB). Exact numbers can be typed.</li>
+   <li>A daily, weekly or monthly figure is turned into a busiest hour by the daily curves and time zones: see Formulas.</li></ul>
+  <h4>Middleware · complexity</h4><ul><li>Simple, Medium or Complex. Turned into seconds per message (settings) and so into messages in process at once.</li></ul>
+  <h4>Delivery · how it's handed over</h4><ul><li>One by one, small batches ($batch) or bulk/file. Decides how the target is called and how fast it absorbs records.</li></ul>
+  <h4>Target · capacity and SLA</h4><ul><li>How many calls the target takes at the same time, and the <b>end-to-end SLA</b>: seconds, minutes, the hour, or doesn't matter.</li></ul>
+  <h4>Results</h4><ul>
+   <li>Each platform card has two sections: <b>Size</b> (does the biggest message fit?) and <b>Volume</b> (does the busiest hour fit?).</li>
+   <li><b>Why</b> opens the facts, the formula and the limits; change any factor there for this run. <i>Changed for this run · reset</i> undoes it.</li>
+   <li><b>Copy summary</b> puts a text version on the clipboard.</li></ul>`},
+ {id:"profile",grp:"Use",t:"Workload profile",h:()=>`
+  <h3>Workload profile</h3><p class="gLead">The profile is the interface's fingerprint: one band per dimension. Bands are fixed ranges whose edges sit where real platform limits sit, so two architects with the same answers get the same profile.</p>
+  <table><tr><th>Code</th><th>Dimension</th><th>Bands</th><th>Why it matters</th></tr>
+  ${Object.entries(BANDS).map(([k,b])=>`<tr><td><b>${k}</b></td><td>${b.n}</td><td>${b.s.map(s=>`${s[0]} <span class="note">${s[1]}</span>`).join("<br>")}</td><td>${b.why}</td></tr>`).join("")}
+  <tr><td>—</td><td>In process at once</td><td>number</td><td>Messages being worked on at the same moment: busiest hour ÷ 3600 × seconds per message. Compared with each component's parallel capacity.</td></tr></table>
+  <h4>How to read it</h4><ul>
+   <li><b>Today</b> is your answers; <b>3 years</b> appears when growth is above ×1.</li>
+   <li>Tap a band to see the calculation behind it.</li>
+   <li>One band in a high range is a design point. Several high bands together (big and frequent, or frequent and complex) are where designs flip.</li>
+   <li>The profile has no platform in it. Platform fit is judged only in the evaluation above it.</li></ul>`},
+ {id:"formulas",grp:"Method",t:"Formulas",h:()=>`
+  <h3>Formulas</h3><p class="gLead">Every formula the calculator uses, with its inputs and assumptions. Values shown are your current settings.</p>
+  <div class="fBox"><div class="fh">Users in scope</div><code>known: global users
+estimated (one reference): users_ref ÷ weight_ref × Σ(countries_g × weight_g)
+estimated (several): average users per medium-equivalent across references, × Σ(countries_g × weight_g)</code>
+   <p class="ex">Weights: large ×${gv("fL")}, medium ×${gv("fM")}, small ×${gv("fS")} ${cfB("E")}. Users only help derive volume, never the reverse.</p></div>
+  <div class="fBox"><div class="fh">Message size</div><code>JSON: envelope + Σ fields × (name ${gv("nameLen")} + value ${gv("valLen")} + 6) bytes
+XML:  envelope + Σ fields × (2 × name + value + 5)
+CSV:  header row + lines × Σ (value + 1)
+IDoc: control ${gv("idocCtl")} B + segments × ${gv("idocSeg")} B  (≈ ${gv("idocFps")} fields per segment)
+files inside JSON/XML: × ${gv("b64")} (base64)</code>
+   <p class="ex">Envelope ${gv("envB")} B. Run twice: normal and biggest message. Size bands start at ${gv("sz1")} KB, where size starts to matter on any platform.</p></div>
+  <div class="fBox"><div class="fh">From a period to the busiest hour</div><code>per day   → busiest hour = day × peak share of the curve
+per week  → day = week ÷ ${gv("weekDays")} working days
+per month → day = month ÷ ${gv("workDays")} working days
+batch     → busiest hour = messages per run ÷ run window (${gv("batchWin")} min) × 60</code>
+   <p class="ex">Peak share = the busiest hour of the combined daily curve (see Statistics). A busiest-day factor (×1.5 … ×50) multiplies the day first.</p></div>
+  <div class="fBox"><div class="fh">Global busiest hour</div><code>for each UTC hour h: load(h) = Σ_regions weight_r × curve(h − offset_r)
+peak share = max_h load(h) ÷ Σ_h load(h)</code>
+   <p class="ex">Offsets: Americas ${gv("oAM")} h, EMEA +${gv("oEM")} h, Asia-Pacific +${gv("oAP")} h. The calculator also shows the plain "one country × N" figure for comparison.</p></div>
+  <div class="fBox"><div class="fh">Volume scale edges</div><code>edge_i (per hour) = min(throughput_i ÷ biggest message, count_i)
+throughput edges ${gv("tp1")} / ${gv("tp2")} / ${gv("tp3")} GB/h · count edges ${gv("cnt1")} / ${gv("cnt2")} / ${gv("cnt3")} per hour
+converted to the chosen period: day = hour ÷ peak share; week = day × ${gv("weekDays")}; month = day × ${gv("workDays")}</code></div>
+  <div class="fBox"><div class="fh">In process at once (Little's law)</div><code>in process = busiest hour ÷ 3600 × seconds per message</code>
+   <p class="ex">Seconds per message by complexity: simple ${gv("t_w1")} s, medium ${gv("t_w2")} s, complex ${gv("t_w3")} s ${cfB("E")}. It is an average: bursts push it higher for short moments.</p></div>
+  <div class="fBox"><div class="fh">Capacity verdict</div><code>drain (msgs/h) = capacity ÷ seconds per message × 3600
+Fit    : in process ≤ ${gv("comfort")}% of capacity
+Adapt  : in process ≤ capacity, or average rate ≤ drain (a queue holds the peak)
+Beyond : otherwise
+clear time (min) = backlog ÷ (drain − average) × 60</code>
+   <p class="ex">Not suitable: the component is built for another traffic shape (e.g. continuous traffic on ADF). Not applicable: the check doesn't apply (e.g. no mass load).</p></div>
+  <div class="fBox"><div class="fh">Growth</div><code>years to breach = ln(limit ÷ today) ÷ ln(1 + yearly growth)
+3-year value = today × growth factor</code></div>
+  <div class="callout warn">Under review: the single comfort % is planned to become a utilisation target that depends on pool size and burstiness. See <button class="infoLink" data-go="review">Under review</button>.</div>`},
+ {id:"stats",grp:"Method",t:"Traffic statistics",h:()=>{const sp=k=>{const mx=Math.max(...CURVE[k])||1;return `<svg viewBox="0 0 240 46">${CURVE[k].map((v,h)=>`<rect x="${h*10}" y="${44-42*v/mx}" width="8" height="${42*v/mx}" rx="1.5" fill="${v===mx?"var(--acc)":"var(--idle)"}"/>`).join("")}</svg>`;};return `
+  <h3>Traffic statistics</h3><p class="gLead">How the shape of traffic over a day and a year is assumed, and what the research supports.</p>
+  <h4>Daily curves in use</h4><div class="spark">${Object.keys(CURVE).map(k=>`<div><b>${WHO[k]}</b>${sp(k)}<span class="note">busiest hour ${(peakShare(k)*100).toFixed(1)}% of the day at ${CURVE[k].indexOf(peakShare(k))}:00 local</span></div>`).join("")}</div>
+  <p class="note">Editable in ⚙ Calculation settings (24 values per curve). Changing a curve changes every busiest-hour estimate.</p>
+  <table><tr><th>Rule</th><th>Value</th><th>Conf.</th><th>Source</th></tr>
+  <tr><td>Busiest-hour share, office-hours traffic</td><td>15–20% of the day (17% used in planning); floor 1/8 = 12.5%</td><td>${cfB("B")}</td><td>${gS("cisco")}</td></tr>
+  <tr><td>Business-day shape</td><td>Two humps: 10–11 and 14–15 local; SAP peak window 08–18</td><td>${cfB("B")}</td><td>${gS("cisco","ibmSap")}</td></tr>
+  <tr><td>24-hour consumer events</td><td>≈ 5–10% in the busiest hour (Cyber Monday 2025 ≈ 6.7%)</td><td>${cfB("E")}</td><td>${gS("adobe")}</td></tr>
+  <tr><td>Batch</td><td>busiest hour = run ÷ window (hours)</td><td>${cfB("A")}</td><td>arithmetic</td></tr>
+  <tr><td>Design day</td><td>Size for the 4th-busiest day of the month (ITU-T E.492), not the absolute maximum</td><td>${cfB("A")}</td><td>${gS("cisco")}</td></tr>
+  <tr><td>Peak-day factors</td><td>Cyber Monday ≈ 3.4× an average season day; Prime Day 1.4–1.6× baseline. Month-end 2–3× is common practice, not sourced</td><td>${cfB("E")}</td><td>${gS("adobe")}</td></tr>
+  <tr><td>Working days</td><td>≈ 21 per month; SAP regional defaults 200 (Europe) / 250 (Americas) / 300 (Asia-Pacific) per year</td><td>${cfB("B")}</td><td>${gS("ibmSap")}</td></tr></table>
+  <h4>Global aggregation across time zones</h4>
+  <p>Shift each region's curve by its UTC offset, weight it, sum per UTC hour, take the maximum. The ratio global peak ÷ sum of regional peaks is the <b>coincidence factor</b> (1 ÷ diversity factor), a method from electrical load planning ${cfB("A")} ${gS("div")}.</p>
+  <table><tr><th>Mix</th><th>Busiest hour, share of global day</th><th>Coincidence</th></tr>
+  <tr><td>One region</td><td>≈ 12–20%</td><td>1.0</td></tr><tr><td>Three equal regions</td><td>≈ 4–5%</td><td>≈ 0.33–0.4</td></tr><tr><td>Europe-heavy (60 / 30 / 10)</td><td>≈ 9–12%</td><td>≈ 0.6–0.8</td></tr></table>
+  <p class="note">Worked values ${cfB("E")}. Central jobs released at one moment break the spreading: count them with coincidence 1.</p>
+  <h4>From users to messages</h4>
+  <p>SAP user classes: <b>Low 10, Medium 120, High 360</b> dialog steps per hour, sized on concurrent users ${cfB("B")} ${gS("ibmSap")}. SAP Quick Sizer is ±20% and excludes interfaces ${gS("sapSizing")}.</p>
+  <code class="fCode">messages/h ≈ concurrent users × steps/h ÷ steps per document (5–15, E) × fan-out (3–6, E)</code>
+  <p class="note">Expect ±50%. Prefer a known volume or a reference country.</p>
+  <h4>Bursts inside the hour</h4>
+  <p>For random (Poisson) arrivals the busiest minute is ≈ λ + 3.1√λ (λ = average per minute): ×1.1 at 1,000/min, ×2.1 at 10/min ${cfB("A")}. Batch releases don't smooth out with volume: treat them as a block of N arriving at once.</p>`}},
+ {id:"queue",grp:"Method",t:"Capacity and queues",h:()=>`
+  <h3>Capacity and queues</h3><p class="gLead">The queueing rules behind Fit, Adapt and Beyond. The maths is textbook-solid ${cfB("A")}; the platform parameters are not.</p>
+  <div class="fBox"><div class="fh">Little's law ${cfB("A")} ${gS("little")}</div><code>in process L = arrival rate λ × time in system W
+consumers needed c = ⌈λ × S ÷ target utilisation⌉</code><p class="ex">Holds for any arrival pattern, as an average. Use a high-percentile processing time (p95) for a cautious sizing.</p></div>
+  <div class="fBox"><div class="fh">Utilisation and waiting (Erlang C, Kingman) ${cfB("A")} ${gS("erlang","kingman")}</div><code>wait ≈ (c_a² + c_s²) ÷ 2 × ρ ÷ (1 − ρ) × S</code><p class="ex">ρ = utilisation, c = variability of arrivals and service. From 80% to 90% utilisation the wait more than doubles. Large pools can run hotter than small ones (square-root staffing).</p>
+   <table><tr><th>Consumers in the pool</th><th>Target utilisation</th></tr><tr><td>≤ 4</td><td>60–70%</td></tr><tr><td>5–20</td><td>70–80%</td></tr><tr><td>&gt; 50</td><td>85–90%</td></tr></table><p class="ex">Bands ${cfB("C")}; lower them for bursty traffic.</p></div>
+  <div class="fBox"><div class="fh">Peaks, backlog and drain ${cfB("B")} ${gS("lev")}</div><code>backlog after a peak B = (λ_peak − μ) × T_peak
+time to clear = B ÷ (μ − λ_average)      only if μ > λ_average
+oldest message age ≈ B ÷ μ                (check against expiry / TTL)
+spool needed ≈ B × message size × 1.5–2</code><p class="ex">A queue lets you size for the average, never for less than the average.</p></div>
+  <div class="fBox"><div class="fh">Chains ${cfB("A")} ${gS("retry")}</div><code>chain throughput = min over steps (capacity_i)
+end-to-end time = Σ (processing_i + queue wait_i)
+attempts with r retries = (1 − p^(r+1)) ÷ (1 − p)</code><p class="ex">Retry at one layer only: retries at several layers multiply load.</p></div>
+  <div class="fBox"><div class="fh">More consumers is not always faster (USL) ${cfB("A")} ${gS("usl")}</div><code>C(N) = N ÷ (1 + σ(N − 1) + κN(N − 1))      peak at N* = √((1 − σ) ÷ κ)</code><p class="ex">σ (contention) and κ (coherence) have to be measured per platform with 4–6 load points.</p></div>
+  <div class="fBox"><div class="fh">Growth ${gS("confl")}</div><code>design capacity = peak × (1 + g)^H ÷ target utilisation
+headroom years  = ln(capacity × ρ ÷ peak) ÷ ln(1 + g)</code></div>`},
+ {id:"rules",grp:"Ground rules",t:"Platform ground rules",h:()=>`
+  <h3>Platform ground rules</h3><p class="gLead">Limits and capacity facts per component, from vendor sources. Researched November 2026. SAP publishes limits but no throughput; Azure publishes ceilings and blog benchmarks.</p>
+  <h4>SAP BTP Integration Suite</h4>
+  <table><tr><th>Component</th><th>Ground rule</th><th>Conf.</th><th>Src</th></tr>
+  <tr><td>Tenant</td><td>Content 500 MB · message processing log 35 GB · runtime DB 35 GB · disk 4 GB</td><td>${cfB("A")}</td><td>${gS("sapScope")}</td></tr>
+  <tr><td>Sender size guard</td><td>SOAP/IDoc: body 40 MB, attachments 100 MB (0 = unlimited); HTTP 413 above</td><td>${cfB("B")}</td><td>${gS("sapGuard")}</td></tr>
+  <tr><td>Parallelism</td><td>Effective = concurrent processes per channel × worker nodes. JMS sender default 1 process. HTTP-type senders process on the receiving worker</td><td>${cfB("B")}</td><td>${gS("sapJms","sapKafka")}</td></tr>
+  <tr><td>Worker nodes</td><td>Not published; differs per tenant; read from the runtime nodes view</td><td>${cfB("A")}</td><td>${gS("sapNodes")}</td></tr>
+  <tr><td>JMS</td><td>9 GB / 30 queues / 150 transactions by default; up to 30 GB / 100 / 500. Messages kept 90 days by default</td><td>${cfB("A")}</td><td>${gS("sapScope","sapJms")}</td></tr>
+  <tr><td>AEM sender</td><td>SMF consumer on a queue; consumers = parallel consumers × worker nodes; exclusive queue = one active flow</td><td>${cfB("A")}/${cfB("E")}</td><td>${gS("sapAem")}</td></tr>
+  <tr><td>Metering</td><td>1 billable message = 250 KB slice (cost, not capacity)</td><td>${cfB("C")}</td><td></td></tr>
+  <tr><td>API Management</td><td>10 MB non-streamed; streaming off by default; rate limits are your own policies</td><td>${cfB("A")}</td><td>${gS("sapApim")}</td></tr></table>
+  <h4>Solace / Advanced Event Mesh service classes ${gS("solace")}</h4>
+  <table><tr><th>Class</th><th class="n">Connections</th><th class="n">Spool</th><th class="n">Max message</th><th class="n">Queues</th><th class="n">REST out / RDPs</th></tr>
+  ${[["E100","100","25 GB","10 MB","100","1,000 / 200"],["E250","250","50 GB","10 MB","250","1,000 / 200"],["E1K","1,000","200 GB","10 → 30 MB","1,000","1,000 / 200"],["E5K","5,000","400 GB","30 MB","5,000","7,500 / 500"],["E10K","10,000","600 GB","30 MB","10,000","7,500 / 500"],["E50K","50,000","800 GB","30 MB","50,000","22,500 / 1,500"],["E100K","100,000","1,000 GB","30 MB","100,000","22,500 / 1,500"]].map(r=>`<tr><td><b>${r[0]}</b></td>${r.slice(1).map(x=>`<td class="n">${x}</td>`).join("")}</tr>`).join("")}</table>
+  <ul><li>SMF and AMQP count against the enterprise connection pool; MQTT, web messaging and incoming REST against the IoT pool. One client = one connection ${cfB("A")}.</li>
+  <li>All protocols are translated to SMF; guaranteed messages above ≈ 30 MB are discarded; compression is SMF-only ${cfB("A")} ${gS("solEnc")}.</li>
+  <li>Consumer parallelism is a queue setting (max consumers). No message-rate figure is published per class: measure ${cfB("E")}.</li>
+  <li>REST delivery to an iFlow: ceiling ≈ REST outgoing connections ÷ iFlow response time ${cfB("E")}.</li></ul>
+  <h4>Azure (Premium)</h4>
+  <table><tr><th>Component</th><th>Ground rule</th><th>Conf.</th><th>Src</th></tr>
+  <tr><td>Logic Apps Standard plans</td><td>WS1 1 vCPU / 3.5 GB · WS2 2 / 7 · WS3 4 / 14; 20–100 instances by region; scaling 1→100 takes 25–50 min</td><td>${cfB("A")}</td><td>${gS("laPrice","laLim")}</td></tr>
+  <tr><td>Logic Apps throughput</td><td>≈ 100k actions/min per storage account (≤ 32 accounts); benchmark ≈ 90 actions/s per WS3 instance</td><td>${cfB("A")}/${cfB("B")}</td><td>${gS("laLim","laBench")}</td></tr>
+  <tr><td>Logic Apps concurrency</td><td>Trigger concurrency max 100 (cannot be undone), 200 waiting runs; For-each 20 default / 50 max</td><td>${cfB("A")}</td><td>${gS("laLim")}</td></tr>
+  <tr><td>Logic Apps size and time</td><td>100 MiB per message (1 GB chunked) · HTTP 225 s · stateless run 5 min · stateful 90 days</td><td>${cfB("A")}</td><td>${gS("laLim")}</td></tr>
+  <tr><td>Logic App behind APIM</td><td>Calling a Request trigger via the APIM REST API is throttled at 56 calls / 5 min: use the callback URL</td><td>${cfB("A")}</td><td>${gS("laLim")}</td></tr>
+  <tr><td>Functions Premium</td><td>EP1/2/3 = 1/2/4 cores; Service Bus trigger 16 concurrent calls, 8 sessions, batch 1,000; ≤ 100 instances; HTTP 230 s</td><td>${cfB("A")}</td><td>${gS("fnSb","fnPrem")}</td></tr>
+  <tr><td>Service Bus Premium</td><td>1/2/4/8/16 MU; 100 MB over AMQP, 1 MB over HTTP and per batch; queues up to 80 GB; 5,000 AMQP connections</td><td>${cfB("A")}</td><td>${gS("sbQ")}</td></tr>
+  <tr><td>Service Bus throughput</td><td>Per MU, 1 KB: queue ≈ 6,800 msg/s · topic + 1 sub ≈ 5,000 · topic + 5 subs ≈ 1,600; ≈ linear to 4 MU</td><td>${cfB("B")}</td><td>${gS("sbPerf")}</td></tr>
+  <tr><td>API Management</td><td>≈ req/s per unit: Basic 1,000 · Standard 2,500 · Premium 4,000 (indicative); buffered body 500 MiB classic, <b>2 MiB on v2</b></td><td>${cfB("A")}*</td><td>${gS("apimP","apimL")}</td></tr>
+  <tr><td>Data Factory</td><td>10,000 concurrent runs per factory; For-each 20/50; 4–256 DIU; self-hosted IR ≤ 4 nodes. Batch only, never per message</td><td>${cfB("A")}</td><td>${gS("adfL")}</td></tr>
+  <tr><td>Event Grid</td><td>Basic topics 5,000 events/s or 5 MB/s, 1 MB per event. Carry signals, not payloads</td><td>${cfB("A")}</td><td>${gS("egL")}</td></tr></table>
+  <p class="note">* Microsoft marks the APIM figures "for information only".</p>`},
+ {id:"settings",grp:"Ground rules",t:"Settings explained",h:()=>{const rv={};G_REV.forEach(r=>rv[r[0]]=r);return `
+  <h3>Settings explained</h3><p class="gLead">Every parameter in ⚙ Calculation settings: what it does, its current and default value, its confidence, and what the research says where it differs.</p>
+  <div class="callout">Settings are saved in this browser only. A change in a <b>Why</b> panel applies to one run; a change in ⚙ settings becomes your default. Rows marked <span class="diff">review</span> differ from the research.</div>
+  ${SET_DEF.map(g=>`<h4>${g.g}</h4><table><tr><th>Parameter</th><th class="n">Now</th><th class="n">Default</th><th>Conf.</th><th>Research</th></tr>${g.items.map(([k])=>{const r=rv[k];return `<tr><td>${SM[k].l}</td><td class="n">${gv(k)} <span class="note">${SM[k].u}</span></td><td class="n">${SD[k]}</td><td>${SM[k].c==="—"?"—":cfB(SM[k].c)}</td><td>${r?`<span class="${r[3]==="ok"?"ok":r[3]==="diff"?"diff":""}">${r[3]==="ok"?"confirmed":r[3]==="diff"?"review":"note"}</span> ${r[1]} ${gS(...r[4])}`:""}</td></tr>`}).join("")}</table>`).join("")}`}},
+ {id:"review",grp:"Ground rules",t:"Under review",h:()=>`
+  <h3>Under review</h3><p class="gLead">What the November 2026 research says about the values the calculator uses today. Nothing here has been applied yet: it waits for an architecture decision.</p>
+  <table><tr><th>Setting</th><th class="n">Now</th><th>Research</th><th>Conf.</th></tr>
+  ${G_REV.map(r=>`<tr><td>${SM[r[0]]?SM[r[0]].l:r[0]}</td><td class="n">${gv(r[0])} <span class="note">${SM[r[0]]?SM[r[0]].u:""}</span></td><td><span class="${r[3]==="ok"?"ok":r[3]==="diff"?"diff":""}">${r[3]==="ok"?"Confirmed":r[3]==="diff"?"Change":"Note"}</span> · ${r[1]} ${gS(...r[4])}</td><td>${r[2]}</td></tr>`).join("")}</table>
+  <h4>To measure on your tenant</h4>
+  <table><tr><th>Measure</th><th>Why</th></tr>
+  ${[["Cloud Integration worker nodes and threads per worker","Multiplier for all iFlow parallelism; not published"],["iFlow msg/s and processing time (p50/p95) for reference flows: pass-through, mapping, IDoc","No SAP benchmark exists; calibrates seconds per message"],["JMS per-message size cap; transactions used per consumer per node","Old 10 MB value unverified; transaction budget is inferred"],["AEM sender parallel-consumer default and max","Not published"],["Solace msg/s and MB/s per class; max consumers per queue","Not on the class page"],["BTP API Management TPS and max streamed size","Not published"],["HTTP sender max body; iFlow → backend timeout","Unverified"],["Service Bus throughput above 1 KB, above 4 MU, topics with real filters","Benchmark covers 1 KB, ≤ 4 MU only"],["Azure APIM v2 req/s per unit; Premium with your policies","v2 unpublished; Premium indicative"],["Logic App actions/s per WS1/WS2/WS3 for your workflow mix","Only a blog-derived ≈ 90 actions/s per WS3"],["Functions effective Service Bus concurrency per EP size","Docs contradict: 16 vs 16 × cores"],["Scalability (σ, κ) per platform; busiest-hour share and burstiness from minute-level logs","Drive utilisation targets and consumer caps"],["IDoc and JSON/XML bytes per field on real messages","Size coefficients unsourced"]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>`},
+ {id:"sources",grp:"Ground rules",t:"Sources",h:()=>`
+  <h3>Sources</h3><p class="gLead">Pages opened during the research (November 2026).</p>
+  <ul>${Object.keys(G_SRC).map(k=>`<li>${gL(k)}</li>`).join("")}</ul>
+  <p class="note">Framework document: Interface Workload Envelope Framework (section 8 holds the middleware research).</p>`}
+];
+
+let gCur="start";
+function openGuide(ch){
+ closeCard&&closeCard();closeSet&&closeSet();closeGuide();
+ if(ch)gCur=ch;
+ const bg=document.createElement("div");bg.className="gDrawerBg";bg.id="gBg";
+ let nav="",lastG="";G_CH.forEach((c,i)=>{if(c.grp!==lastG){nav+=`<div class="grp">${c.grp}</div>`;lastG=c.grp;}nav+=`<button data-ch="${c.id}" class="${c.id===gCur?"on":""}"><span class="num">${i+1}</span><span class="t">${c.t}</span></button>`;});
+ bg.innerHTML=`<div class="gDrawer" role="dialog" aria-label="Guide"><div class="gHead"><div><h2>Guide</h2><p class="note">Ground rules, formulas, statistics and how to use the calculator</p></div><div style="display:flex;gap:8px;align-items:center"><input class="gSearch" id="gQ" placeholder="Search the guide"><button class="btn" data-deck="1">🎞 Concepts</button><button class="btn" id="gClose">Close</button></div></div>
+ <div class="gBody"><nav class="gNav">${nav}</nav><div class="gMain" id="gMain"></div></div></div>`;
+ document.body.appendChild(bg);
+ bg.onclick=e=>{if(e.target===bg)closeGuide();};
+ document.getElementById("gClose").onclick=closeGuide;
+ bg.querySelectorAll("[data-ch]").forEach(b=>b.onclick=()=>gShow(b.dataset.ch));
+ document.getElementById("gQ").addEventListener("input",e=>gSearch(e.target.value));
+ bg.addEventListener("click",e=>{const d=e.target.closest("[data-deck]");if(d){e.stopPropagation();openDeck();}const g=e.target.closest("[data-go]");if(g){e.stopPropagation();gShow(g.dataset.go);}});
+ gShow(gCur);
+}
+function gShow(id){gCur=id;const c=G_CH.find(x=>x.id===id)||G_CH[0];const m=document.getElementById("gMain");if(!m)return;m.innerHTML=c.h();m.scrollTop=0;document.querySelectorAll(".gNav [data-ch]").forEach(b=>b.classList.toggle("on",b.dataset.ch===id));}
+function gSearch(q){q=q.trim().toLowerCase();const m=document.getElementById("gMain");if(!q){gShow(gCur);return;}
+ const hits=[];G_CH.forEach(c=>{const d=document.createElement("div");d.innerHTML=c.h();const txt=d.textContent.replace(/\s+/g," ");const i=txt.toLowerCase().indexOf(q);if(i>=0)hits.push({c,s:txt.slice(Math.max(0,i-70),i+110)});});
+ m.innerHTML=`<h3>Search: “${q.replace(/</g,"&lt;")}”</h3>`+(hits.length?hits.map(h=>`<div class="fBox"><div class="fh"><button class="infoLink" data-go="${h.c.id}">${h.c.t} →</button></div><p class="ex">…${h.s.replace(/</g,"&lt;")}…</p></div>`).join(""):`<p class="note">No match.</p>`);}
+function closeGuide(){const b=document.getElementById("gBg");if(b)b.remove();}
+function openDeck(){closeDeck();const bg=document.createElement("div");bg.className="deckBg";bg.id="deckBg";
+ bg.innerHTML=`<div class="deckTop"><span>Designing for volume · concepts — use ← → or click the sides</span><button class="btn" id="deckClose">✕ Close</button></div><iframe src="concepts.html" title="Concepts presentation"></iframe>`;
+ document.body.appendChild(bg);document.getElementById("deckClose").onclick=closeDeck;
+ const f=bg.querySelector("iframe");f.addEventListener("load",()=>{try{f.contentWindow.focus()}catch(e){}});}
+function closeDeck(){const b=document.getElementById("deckBg");if(b)b.remove();}
+document.getElementById("guideBtn").onclick=e=>{e.stopPropagation();openGuide();};
+document.getElementById("deckBtn").onclick=e=>{e.stopPropagation();closeGuide();openDeck();};
+addEventListener("keydown",e=>{if(e.key==="Escape"){if(document.getElementById("deckBg"))closeDeck();else closeGuide();}});
+/* links from settings and results into the guide */
+document.addEventListener("click",e=>{const g=e.target.closest("[data-guide]");if(g){e.stopPropagation();openGuide(g.dataset.guide);}},true);
+</script>

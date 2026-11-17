@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interface Envelope Evaluator</title>
+<style>
+:root{--bg:#f6f6f3;--card:#fff;--ink:#1c1c1a;--mute:#696964;--line:#e2e1dc;--fit:#2e7d4f;--fitbg:#e4f3e4;--ad:#9a5d08;--adbg:#f8edd8;--be:#b3261e;--bebg:#fbe9e8;--acc:#3451c7;--accbg:#eef1fd;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#151514;--card:#1f1f1d;--ink:#ebeae5;--mute:#a2a19b;--line:#34332f;--fitbg:#1e3325;--adbg:#3a2e18;--bebg:#3b1f1f;--fit:#6fcf97;--ad:#f2b55a;--be:#f28b82;--acc:#91a6ff;--accbg:#232842}}
+*{box-sizing:border-box}
+body{margin:0;font:14.5px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:1040px;margin:0 auto;padding:16px}
+h1{font-size:21px;margin:4px 0 2px}
+h2{font-size:16px;margin:24px 0 8px}
+h3{font-size:14px;margin:16px 0 6px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+.sub{color:var(--mute);font-size:13px;margin:0 0 10px}
+.tabs{display:flex;gap:6px;margin:12px 0 4px;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5}
+.tabs button{flex:1;min-width:110px;padding:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font-weight:600;cursor:pointer}
+.tabs button.on{border-color:var(--acc);color:var(--acc);background:var(--accbg)}
+.grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
+@media(min-width:980px){.grid.g3{grid-template-columns:1fr 1fr 1fr}}
+.q{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.q .t{font-weight:700;font-size:13.5px;display:flex;justify-content:space-between;gap:6px}
+.q .hint{color:var(--mute);font-size:12px;margin:2px 0 6px}
+.fld{display:flex;align-items:center;gap:6px;margin:4px 0}
+.fld label{flex:1;font-size:13px}
+input[type=number],select{padding:6px 7px;font-size:14px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=number]{width:110px;text-align:right}
+select{width:100%}
+.fld select{width:auto;max-width:60%}
+.band{font-size:11px;font-weight:700;color:var(--acc);background:var(--accbg);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.tag{font-size:11px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pname{font-weight:700}
+.chain{color:var(--mute);font-size:12px;margin-top:2px}
+.chip{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;display:inline-block}
+.F{background:var(--fitbg);color:var(--fit)}.A{background:var(--adbg);color:var(--ad)}.B{background:var(--bebg);color:var(--be)}.G{background:var(--adbg);color:var(--ad);outline:1.5px dashed var(--ad);outline-offset:-1.5px}.N{background:var(--line);color:var(--mute)}
+.when{font-size:11px;color:var(--mute);margin:0 3px 0 8px}
+details{margin-top:8px}
+summary{cursor:pointer;color:var(--acc);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:12.8px;margin-top:6px}
+td,th{border-top:1px solid var(--line);padding:5px 5px;text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:12px}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+code,.f{font-family:var(--mono);font-size:12px}
+.z{font-weight:700;font-size:11.5px;padding:1px 6px;border-radius:4px;white-space:nowrap}
+.note{color:var(--mute);font-size:12px}
+.callout{border-left:3px solid var(--acc);padding:8px 11px;background:var(--card);border-radius:0 8px 8px 0;font-size:13px;margin:8px 0}
+.legend .chip{margin-right:4px}
+.btn{padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;font-size:13px}
+.btn.p{border-color:var(--acc);color:var(--acc)}
+.mini{padding:2px 7px;font-size:11px;border-radius:6px}
+.chg{background:var(--adbg)}
+.conf{font-size:11px;font-weight:700;color:var(--mute)}
+.big{font-size:22px;font-weight:800}
+.kpi{display:flex;gap:10px;flex-wrap:wrap}
+.kpi .card{flex:1;min-width:150px;margin:0}
+.manual p,.manual li{font-size:14px}
+.manual .f{display:block;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 9px;margin:4px 0;white-space:pre-wrap}
+.off{opacity:.45}
+</style>
+</head>
+<body>
+<main>
+<h1>Interface Envelope Evaluator <span class="tag">v0.3</span></h1>
+<p class="sub">Evaluates one functional interface against the Workload Envelope Framework v0.3. The inputs and the scale come from the framework, and every number is calculated from a formula you can see. Every limit and factor can be changed on the Config tab. It's a technical tool; business-style quantities are accepted and turned into bands by the bridge formulas.</p>
+
+<div class="tabs">
+ <button data-v="eval" class="on">1 · Evaluate</button>
+ <button data-v="extra">2 · Extrapolation</button>
+ <button data-v="config">3 · Config</button>
+ <button data-v="how">4 · How it works</button>
+</div>
+
+<!-- ============ EVALUATE ============ -->
+<section id="v-eval">
+<h2>1. Describe the interface</h2>
+<div class="grid g3" id="inputs"></div>
+<div style="margin-top:10px" class="row"><div><button class="btn" id="resetIn">Reset to example</button> <button class="btn" id="copy">Copy summary</button> <span id="copied" class="note"></span></div><div class="note" id="cfgState"></div></div>
+
+<h2>2. Calculation trail</h2>
+<p class="note">Each measure with its formula, the numbers put into it, and the band it lands in. The 3-year column applies the growth inputs; the mass-event column runs the separate scenario.</p>
+<div class="card" style="overflow-x:auto"><table id="trail"></table></div>
+
+<h2>3. Result per pattern family</h2>
+<div class="legend note"><span class="chip F">Fit</span>template holds · <span class="chip A">Adapt</span>one design change · <span class="chip G">Fragile</span>2+ changes, compare with the next pattern · <span class="chip B">Beyond</span>wrong selection</div>
+<div class="callout" id="headline"></div>
+<div id="out"></div>
+<div class="callout"><b>Fixed rule (endorsed):</b> do the heavy lifting where scaling is possible; keep the fixed hop to S/4 thin. BTP always fronts S/4 on one tenant, so where the iFlow is the bottleneck, only moving the processing upstream changes the result.</div>
+</section>
+
+<!-- ============ EXTRAPOLATION ============ -->
+<section id="v-extra" hidden>
+<h2>Extrapolation: from known countries to the global busiest hour</h2>
+<p class="note">Use this when only one or two countries are known. Group the rollout countries by size relative to the known one, then add overlap and event uplift. The result can feed the Evaluate tab (set "Peak-hour volume from" to Extrapolation).</p>
+<div class="grid">
+ <div class="q"><div class="t">Known country</div><div class="hint">Live, or being rolled out</div>
+  <div class="fld"><label>Basis</label><select id="x_mode"><option value="direct">Busiest-hour transactions known</option><option value="users">Users × transactions per user</option></select></div>
+  <div class="fld" id="x_directRow"><label>Transactions in its busiest hour</label><input type="number" id="x_known" min="0"></div>
+  <div class="fld" id="x_uRow"><label>Users or sites</label><input type="number" id="x_users" min="0"></div>
+  <div class="fld" id="x_tRow"><label>Transactions per user in busiest hour</label><input type="number" id="x_tpu" min="0" step="0.1"></div>
+ </div>
+ <div class="q"><div class="t">Rollout countries, grouped by size</div><div class="hint">Size factor relative to the known country (users, customers or revenue)</div>
+  <table><tr><th>Group</th><th>Count</th><th>Factor ×</th></tr>
+  <tr><td>Large</td><td><input type="number" id="x_nL" min="0"></td><td><input type="number" id="x_fL" min="0" step="0.1"></td></tr>
+  <tr><td>Similar</td><td><input type="number" id="x_nM" min="0"></td><td><input type="number" id="x_fM" min="0" step="0.1"></td></tr>
+  <tr><td>Small</td><td><input type="number" id="x_nS" min="0"></td><td><input type="number" id="x_fS" min="0" step="0.1"></td></tr></table>
+ </div>
+ <div class="q"><div class="t">What makes peaks pile up</div>
+  <div class="fld"><label>Peak overlap: share of countries peaking in the same hour (%)</label><input type="number" id="x_ovl" min="0" max="100"></div>
+  <div class="fld"><label>Event uplift on the busiest day (campaign, month-end) ×</label><input type="number" id="x_upl" min="1" step="0.1"></div>
+  <div class="note">100% overlap is the conservative case: all countries in one time zone band.</div>
+ </div>
+ <div class="q"><div class="t">Result</div>
+  <div class="kpi"><div class="card"><div class="note">Global busiest hour</div><div class="big" id="x_res">–</div><div id="x_band"></div></div></div>
+  <div style="margin-top:8px"><button class="btn p" id="x_use">Use in Evaluate</button> <span class="note" id="x_used"></span></div>
+ </div>
+</div>
+<div class="card"><table id="x_trail"></table></div>
+</section>
+
+<!-- ============ CONFIG ============ -->
+<section id="v-config" hidden>
+<h2>Config: factors and instance limits</h2>
+<p class="note">Defaults come from vendor documentation and general practice (confidence A = official doc, B = vendor KBA or Q&amp;A, C = secondary, E = empirical, to calibrate). Overwrite any value with your own landscape figure, for example your Solace service class, S/4 work processes or CI capacity. Changed values are highlighted and stored in this browser only.</p>
+<div class="row"><div><button class="btn" id="cfgReset">Reset all to defaults</button> <button class="btn" id="cfgCopy">Copy config</button> <span class="note" id="cfgMsg"></span></div><div class="note" id="cfgCount"></div></div>
+<div id="cfgBox"></div>
+</section>
+
+<!-- ============ HOW ============ -->
+<section id="v-how" class="manual" hidden>
+<h2>How the evaluation works</h2>
+<ol>
+<li><b>Describe the interface in quantities.</b> Volume, size (as lines), processing weight, latency need, run frequency, growth. Each quantity is shown with its band on the framework scale (L1–L5, C1, D1, D3, P1).</li>
+<li><b>The bridge turns quantities into measures</b> with fixed formulas (trail table). The same inputs always give the same measures.</li>
+<li><b>Each pattern is a chain of layers.</b> Each layer is checked against its limit from Config. Each check gets a zone.</li>
+<li><b>Roll-up:</b> any Beyond → Beyond · two or more Adapts → Fragile · one Adapt → Adapt · otherwise Fit.</li>
+<li><b>Three runs:</b> today, 3 years (growth applied), and the mass event as its own scenario on top of the average daily load.</li>
+</ol>
+<h3>Core formulas</h3>
+<span class="f">Peak rate R (records/h)   = users × transactions per user × countries      (or Extrapolation, or direct)
+Average rate              = R ÷ peak-to-average ratio
+Daily volume              = R ÷ peak-hour share
+Record size, typical      = header + typical lines × KB per line + attachment
+Record size, largest      = header + max lines × KB per line + attachment
+Records per message (rpm) = continuous: as entered · scheduled: records per run
+Records per run           = 15 min: R ÷ 4 · hourly: R · daily: daily volume
+Messages per hour M       = R ÷ rpm
+Message size              = rpm × typical record   (largest: (rpm−1) × typical + largest record)
+Metered weight            = ceil(message size ÷ metering slice)
+In flight (Little's law)  = R ÷ 3600 × processing seconds per record
+Drain capacity (records/h)= capacity in flight ÷ seconds per record × 3600
+Years to limit            = 3 × ln(limit ÷ value) ÷ ln(3-year growth)</span>
+<h3>Zoning rules per check</h3>
+<span class="f">Size at a component     ≤ comfortable size → Fit · ≤ hard cap → Adapt · above → Beyond
+Capacity at a layer      in flight ≤ comfort % × capacity → Fit · ≤ capacity → Adapt
+                         above capacity: with a leveller and average ≤ drain → Adapt (backlog drains)
+                                         otherwise → Beyond
+Metering (BTP)           weight ≤ ratio threshold → Fit · above → Adapt (cost) · monthly over quota → Beyond
+Sync time                within real-time budget or comfort % of HTTP ceiling → Fit · ≤ ceiling → Adapt · above → Beyond
+Records into S/4         1 → Fit · ≤ $batch limit → Adapt · ≤ OData mass limit: Adapt async / Beyond sync · above → Beyond
+Mass event on daily road above own-road threshold → Beyond (separate road, CP-01)</span>
+<p class="note">Ordering (C3) is parked. Datasphere is not profiled yet, so it's left out. The empirical values (E) on the Config tab are the ones to calibrate first: CI and S/4 capacities, processing times, size defaults.</p>
+</section>
+</main>
+
+<script>
+/* ---------------- CONFIG MODEL ---------------- */
+const CFG_DEF=[
+ {g:"Bridge defaults (sizes, shares, times)",items:[
+  ["hdrKB","Header size per business document","KB",3,"E","Typical order or invoice header 2–5 KB"],
+  ["lineKB","Size per line item","KB",1,"E","20–60 fields per item, 0.5–2 KB"],
+  ["peakShare","Peak-hour share of a working day","%",20,"E","Business-hours load 15–25%"],
+  ["workDays","Working days per month","days",21,"A","Calendar"],
+  ["tW1","Processing time W1 pass-through","s/record",0.5,"E","< 1 s"],
+  ["tW2","Processing time W2 light","s/record",5,"E","1–10 s"],
+  ["tW3","Processing time W3 heavy","s/record",90,"E","Suddha: heavy orchestration 60–90 s; band 30–120 s"],
+  ["tThin","Thin iFlow step (S/4-facing only)","s/record",1,"E","Mapping + call, no enrichment"],
+  ["tS4","S/4 posting time per record","s/record",0.5,"E","OData/IDoc inbound per record"],
+  ["peakDur","Duration of the busiest period","h",1,"E","Used for backlog size"],
+  ["refKB","Claim-check reference message","KB",2,"E","Pointer + metadata"]]},
+ {g:"Zoning thresholds",items:[
+  ["comfort","Comfort level: Fit up to this share of a capacity or ceiling","%",70,"E","Headroom for blue-green and noise"],
+  ["rtBudget","Real-time budget","s",5,"E","Framework D1 band edge"],
+  ["meterRatio","Metered weight above which cost becomes an Adapt","× per msg",4,"E","Framework: M band ×2–4 still Fit"],
+  ["quota","Monthly metered-message budget for this interface (0 = off)","msgs/month",0,"—","From your licence"],
+  ["ownRoad","Mass-event rate that needs its own road","records/h",50000,"E","Framework 50k/h line, CP-01"],
+  ["syncMaxMB","Largest payload acceptable on a sync call","MB",10,"B","SAP APIM non-streamed 10 MB; practice"]]},
+ {g:"Azure",items:[
+  ["httpCeil","HTTP response ceiling (load balancer, Function, Logic App)","s",230,"A","Azure load balancer idle timeout"],
+  ["apimTO","APIM forward-request timeout honoured","s",240,"B","MS Q&A: values above 240 s may not be honoured"],
+  ["apimConn","APIM backend connections per unit","conns",2048,"A","Azure subscription limits"],
+  ["apimUnits","APIM units provisioned","units",1,"—","Your instance"],
+  ["laMaxMB","Logic App max message per action","MB",105,"A","Logic Apps limits (Standard)"],
+  ["laSoftMB","Logic App comfortable message size","MB",50,"E","Above: chunking or blob"],
+  ["azCap","Azure processing capacity in flight (plan instances × concurrency)","msgs",1000,"E","Own App Service Plan, scale-out"],
+  ["sbEntMB","Service Bus entity max message size (configured)","MB",1,"A","Premium default 1 MB"],
+  ["sbMaxMB","Service Bus Premium hard max (AMQP)","MB",100,"A","Service Bus quotas"]]},
+ {g:"Event broker — Solace / AEM",items:[
+  ["solMaxMB","Guaranteed message cap of your service class","MB",30,"A","30 MB on E1K and above; 10 MB on E250"],
+  ["solSoftMB","Comfortable message size","MB",10,"E","Framework L band edge"]]},
+ {g:"SAP BTP Integration Suite (one tenant)",items:[
+  ["slice","Metering slice","KB",250,"A","SAP pricing: each 250 KB = one message"],
+  ["ciGuardMB","iFlow sender body guard","MB",40,"B","KBA 3745186"],
+  ["ciSoftMB","iFlow comfortable size (beyond: streaming design)","MB",10,"E","Memory; avoid multicast and DOM parsing"],
+  ["ciCap","CI capacity in flight available to this interface","msgs",50,"E","Shared workers × adapter concurrency; calibrate"]]},
+ {g:"S/4HANA RISE Private Cloud (target)",items:[
+  ["s4Cap","Parallel work processes available to this interface","procs",10,"E","Ask Basis"],
+  ["s4TO","ICM / HTTP timeout","s",600,"C","Set by Basis"],
+  ["batchMax","Records per OData $batch","records",1000,"C","≈1,000 changesets"],
+  ["massMax","OData practical limit before IDoc / file","records",50000,"C","Framework heuristic"]]}
+];
+const CFG={};const CFG_META={};
+CFG_DEF.forEach(g=>g.items.forEach(([k,l,u,d,c,b])=>{CFG[k]=d;CFG_META[k]={l,u,d,c,b}}));
+function loadCfg(){try{const s=JSON.parse(localStorage.getItem("env3cfg")||"null");if(s)Object.keys(s).forEach(k=>{if(k in CFG)CFG[k]=+s[k]})}catch(e){}}
+function saveCfg(){try{const o={};Object.keys(CFG).forEach(k=>{if(CFG[k]!==CFG_META[k].d)o[k]=CFG[k]});localStorage.setItem("env3cfg",JSON.stringify(o))}catch(e){}}
+
+/* ---------------- INPUT MODEL ---------------- */
+const EX={rateMode:"formula",users:100,tpu:5,countries:40,direct:20000,shape:4,freq:"cont",rpm:1,linesT:50,linesM:2000,attKB:0,weight:"W2",tOver:0,lat:"ack",gV:3,gS:1,massOn:1,massRec:300000,massWin:4,massRpm:1};
+const X_EX={x_mode:"direct",x_known:500,x_users:100,x_tpu:5,x_nL:10,x_fL:3,x_nM:15,x_fM:1,x_nS:15,x_fS:0.3,x_ovl:100,x_upl:1};
+const IN={},XI={};
+function loadIn(){let s=null,x=null;try{s=JSON.parse(localStorage.getItem("env3in")||"null");x=JSON.parse(localStorage.getItem("env3x")||"null")}catch(e){}Object.assign(IN,EX,s||{});Object.assign(XI,X_EX,x||{})}
+function saveIn(){try{localStorage.setItem("env3in",JSON.stringify(IN));localStorage.setItem("env3x",JSON.stringify(XI))}catch(e){}}
+
+/* ---------------- BANDS (framework scale) ---------------- */
+const fmt=(v,d)=>{if(!isFinite(v))return "–";const a=Math.abs(v);if(d===undefined)d=a>=100?0:a>=10?1:2;return v.toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:0})};
+const mb=kb=>kb/1024;
+const fmtKB=kb=>kb>=1024?fmt(kb/1024)+" MB":fmt(kb)+" KB";
+const B={
+ L1:kb=>{const m=mb(kb);return m<=0.25?"L1 S ≤250 KB":m<=1?"L1 M 250 KB–1 MB":m<=10?"L1 L 1–10 MB":m<=30?"L1 XL 10–30 MB":"L1 XXL >30 MB"},
+ L2:r=>r<10?"L2 Uniform <10×":r<=100?"L2 Variable 10–100×":"L2 Extreme >100×",
+ L3:r=>r<=1000?"L3 R1 ≤1k/h":r<=50000?"L3 R2 1k–50k/h":r<=500000?"L3 R3 50k–500k/h":"L3 R4 >500k/h",
+ L4:s=>s<3?"L4 Flat <3×":s<=10?"L4 Peaky 3–10×":"L4 Burst >10×",
+ L5:f=>({cont:"L5 F1 Continuous",m15:"L5 F2 Frequent ≤15 min",hour:"L5 F3 Periodic (hourly)",day:"L5 F3 Periodic (daily)",rare:"L5 F4 Rare / on demand"})[f],
+ C1:n=>n<=1?"C1 Single":n<=1000?"C1 Set 2–1k":n<=50000?"C1 Bulk 1k–50k":"C1 Mass >50k",
+ D1:l=>({rt:"D1 Real-time <5 s",ack:"D1 Real-time ack, processing async",ns:"D1 Near-sync ≤230 s",as:"D1 Async minutes",ba:"D1 Batch hours"})[l],
+ D3:g=>g<=2?"D3 Stable ≤2×":g<=5?"D3 Growing 2–5×":"D3 Explosive >5×",
+ P1:w=>({W1:"P1 W1 Pass-through",W2:"P1 W2 Light",W3:"P1 W3 Heavy"})[w]
+};
+
+/* ---------------- EXTRAPOLATION ---------------- */
+function extra(){
+ const base=XI.x_mode==="users"?XI.x_users*XI.x_tpu:XI.x_known;
+ const units=XI.x_nL*XI.x_fL+XI.x_nM*XI.x_fM+XI.x_nS*XI.x_fS;
+ const res=base*units*(XI.x_ovl/100)*XI.x_upl;
+ return {base,units,res};
+}
+function renderExtra(){
+ const {base,units,res}=extra();
+ ["x_directRow"].forEach(id=>document.getElementById(id).hidden=XI.x_mode!=="direct");
+ ["x_uRow","x_tRow"].forEach(id=>document.getElementById(id).hidden=XI.x_mode!=="users");
+ document.getElementById("x_res").textContent=fmt(Math.round(res))+" /h";
+ document.getElementById("x_band").innerHTML=`<span class="band">${B.L3(res)}</span>`;
+ const rows=[
+  ["Known country, busiest hour",XI.x_mode==="users"?`${fmt(XI.x_users)} users × ${fmt(XI.x_tpu)}`:"entered",fmt(base)],
+  ["Country-equivalents",`${XI.x_nL}×${XI.x_fL} + ${XI.x_nM}×${XI.x_fM} + ${XI.x_nS}×${XI.x_fS}`,fmt(units)],
+  ["Global busiest hour",`${fmt(base)} × ${fmt(units)} × ${XI.x_ovl}% overlap × ${XI.x_upl} uplift`,fmt(Math.round(res))]];
+ document.getElementById("x_trail").innerHTML=`<tr><th>Step</th><th>Formula</th><th class="num">Value</th></tr>`+rows.map(r=>`<tr><td>${r[0]}</td><td class="f">${r[1]}</td><td class="num"><b>${r[2]}</b></td></tr>`).join("");
+}
+
+/* ---------------- MEASURES ---------------- */
+function rateR(){
+ if(IN.rateMode==="formula")return IN.users*IN.tpu*IN.countries;
+ if(IN.rateMode==="extra")return extra().res;
+ return IN.direct;
+}
+function tRec(){return IN.tOver>0?IN.tOver:CFG["t"+IN.weight]}
+/* scenario: "now" | "y3" | "mass" */
+function measures(sc){
+ const C=CFG,gV=sc==="y3"?IN.gV:1,gS=sc==="y3"?IN.gS:1;
+ const R0=rateR();
+ let R,shape=IN.shape,freq=IN.freq,rpm,massExtra=0;
+ const recT=C.hdrKB+IN.linesT*gS*C.lineKB+IN.attKB;
+ const recM=C.hdrKB+IN.linesM*gS*C.lineKB+IN.attKB;
+ const daily=R0*gV/(C.peakShare/100);
+ if(sc==="mass"){
+  massExtra=IN.massRec/IN.massWin;
+  R=massExtra+R0/IN.shape; /* mass rate on top of average daily load */
+  shape=1;freq="rare";rpm=Math.max(1,IN.massRpm);
+ }else{
+  R=R0*gV;
+  rpm=freq==="cont"?Math.max(1,IN.rpm):freq==="m15"?R/4:freq==="hour"?R:daily;
+  rpm=Math.max(1,rpm);
+ }
+ const M=R/rpm;
+ const msgT=rpm*recT, msgM=(rpm-1)*recT+recM;
+ const wT=Math.ceil(msgT/C.slice), wM=Math.ceil(msgM/C.slice);
+ const t=tRec();
+ const inflight=R/3600*t;
+ const monthly=(sc==="mass"?0:daily/rpm*C.workDays*wT);
+ return {sc,R,R0,avg:R/shape,shape,freq,rpm,M,recT,recM,msgT,msgM,wT,wM,t,inflight,daily,monthly,massExtra,ratioL2:recM/recT};
+}
+
+/* ---------------- CHECKS ---------------- */
+const Z=(z,metric,rule,val,lim,kind)=>({z,metric,rule,val,lim,kind});
+function sizeCheck(name,kb,softMB,hardMB,beyondHint,adaptHint){
+ const m=mb(kb);
+ const z=m<=softMB?"F":m<=hardMB?"A":"B";
+ return Object.assign(Z(z,`${fmtKB(kb)} vs comfort ${fmt(softMB)} MB / cap ${fmt(hardMB)} MB`,z==="F"?"within comfort size":z==="A"?adaptHint:beyondHint,m,hardMB,"size"),{layer:name});
+}
+function capCheck(name,m,tSec,cap,leveller,hint){
+ const C=CFG,inf=m.R/3600*tSec,drain=cap/tSec*3600;
+ let z,rule;
+ if(inf<=cap*C.comfort/100){z="F";rule="within comfort";}
+ else if(inf<=cap){z="A";rule="close to capacity: little headroom";}
+ else if(leveller&&m.avg<=drain){z="A";const back=(m.R-drain)*C.peakDur,hrs=back/Math.max(1,(drain-m.avg));rule=`queue absorbs peak: backlog ≈ ${fmt(back,0)} records, drains in ≈ ${fmt(hrs*60,0)} min`;}
+ else{z="B";rule=leveller?"even the average exceeds drain capacity: "+hint:"no buffer in front: "+hint;}
+ return Object.assign(Z(z,`${fmt(inf)} in flight vs ${fmt(cap)} (drain ${fmt(drain,0)}/h)`,rule,inf,cap,"rate"),{layer:name});
+}
+function meterCheck(m){
+ const C=CFG;let z=m.wT<=C.meterRatio?"F":"A",rule=z==="F"?"cost per message normal":`each message meters as ${m.wT}: pass only what S/4 needs`;
+ if(C.quota>0&&m.monthly>C.quota){z="B";rule=`≈ ${fmt(m.monthly,0)} metered/month exceeds budget ${fmt(C.quota,0)}`;}
+ return Object.assign(Z(z,`weight ${m.wT} (largest ${m.wM}) · ≈ ${fmt(m.monthly,0)}/month`,rule,m.wT,C.meterRatio,"size"),{layer:"BTP metering"});
+}
+function syncCheck(m,total,ceil){
+ const C=CFG,lat=IN.lat;let z,rule;
+
+ if(lat==="ack"){z=total<=C.rtBudget?"F":total<=ceil?"A":"B";rule=z==="F"?"whole chain fits the ack budget":z==="A"?"only an ack is needed: full processing in the sync path is unnecessary; acknowledge and process async":"above HTTP ceiling";}
+ else if(lat==="rt"){z=total<=C.rtBudget?"F":"B";rule=z==="F"?"inside real-time budget":`${fmt(total)} s cannot meet <${C.rtBudget} s: shorten the sync path or change the contract`;}
+ else if(lat==="ns"){z=total<=ceil*C.comfort/100?"F":total<=ceil?"A":"B";rule=z==="F"?"inside the HTTP ceiling":z==="A"?"nest timeouts: S/4 < iFlow < Logic App < APIM < caller":"above HTTP ceiling: async request-reply";}
+ else{z=total<=ceil?"A":"B";rule=z==="A"?"async or batch need served synchronously: fire-and-forget fits better":"above HTTP ceiling and not needed sync";}
+ return Object.assign(Z(z,`${fmt(total)} s end to end vs ceiling ${ceil} s`,rule,total,ceil,"time"),{layer:"Sync path time"});
+}
+function asyncLatCheck(){
+ const l=IN.lat;
+ if(l==="ack")return Object.assign(Z("F","ack in seconds","front acknowledges on publish; processing async",0,0,"x"),{layer:"Latency need"});
+ if(l==="rt")return Object.assign(Z("B","real-time need","no synchronous reply through a broker path",0,0,"x"),{layer:"Latency need"});
+ if(l==="ns")return Object.assign(Z("A","near-sync need","request-reply over the broker, correlate responses",0,0,"x"),{layer:"Latency need"});
+ return Object.assign(Z("F","async / batch need","matches",0,0,"x"),{layer:"Latency need"});
+}
+function s4RecCheck(m,sync){
+ const C=CFG,n=m.rpm;let z,rule;
+ if(n<=1){z="F";rule="single record per call";}
+ else if(n<=C.batchMax){z="A";rule="$batch in chunks";}
+ else if(n<=C.massMax){z=sync?"B":"A";rule=sync?"bulk through a sync API: use async or IDoc":"chunk upstream, IDoc packets or $batch chunks";}
+ else{z="B";rule="mass via OData: IDoc, file or data path";}
+ return Object.assign(Z(z,`${fmt(n,0)} records per message`,rule,n,C.massMax,m.freq==="cont"?"x":"rate"),{layer:"S/4 records per call"});
+}
+function s4SyncTO(total){
+ const C=CFG,z=total<=C.s4TO*C.comfort/100?"F":total<=C.s4TO?"A":"B";
+ return Object.assign(Z(z,`${fmt(total)} s vs ICM ${C.s4TO} s`,z==="F"?"inside ICM timeout":z==="A"?"close to ICM timeout":"beyond ICM timeout",total,C.s4TO,"time"),{layer:"S/4 ICM timeout"});
+}
+function roadCheck(m){
+ if(m.sc!=="mass")return null;
+ const C=CFG,z=m.massExtra>C.ownRoad?"B":"A";
+ return Object.assign(Z(z,`${fmt(m.massExtra,0)} records/h mass load on the daily road`,z==="B"?"above own-road line: separate road (CP-01)":"shares the daily road: watch daily latency",m.massExtra,C.ownRoad,"rate"),{layer:"Mass event road"});
+}
+function freqCheck(m,kind){
+ const f=m.freq;
+ if(kind==="batch"){
+  if(f==="cont")return Object.assign(Z("B","continuous events","batch tool for a continuous stream",0,0,"x"),{layer:"Run frequency"});
+  if(f==="m15")return Object.assign(Z("A","every ≤15 min","micro-batch: each run must finish before the next",0,0,"x"),{layer:"Run frequency"});
+  return Object.assign(Z("F",B.L5(f),"scheduled or rare run fits",0,0,"x"),{layer:"Run frequency"});
+ }
+ return null;
+}
+
+/* ---------------- PATTERNS ---------------- */
+const PAT=[
+ {id:"P1",n:"P1 Sync API via BTP",c:"Caller → BTP iFlow → S/4",sync:true,
+  run:m=>{const C=CFG,t=m.t,tot=t+C.tS4;return[
+   syncCheck(m,tot,C.httpCeil),
+   sizeCheck("Sync payload",m.msgM,C.syncMaxMB*0.5,C.syncMaxMB,"over sync maximum: claim check or async","large sync payload: streaming"),
+   sizeCheck("BTP iFlow size",m.msgM,C.ciSoftMB,C.ciGuardMB,"above iFlow sender guard","streaming design, avoid multicast"),
+   meterCheck(m),
+   capCheck("BTP iFlow capacity",m,t,C.ciCap,false,"move processing upstream or reduce rate"),
+   capCheck("S/4 work processes",m,C.tS4,C.s4Cap,false,"S/4 cannot take the peak"),
+   s4RecCheck(m,true),s4SyncTO(tot),roadCheck(m)]}},
+ {id:"P2",n:"P2 Sync API via Azure → BTP",c:"APIM → Logic App (stateless) / Function → thin iFlow → S/4",sync:true,
+  run:m=>{const C=CFG,tot=m.t+C.tThin+C.tS4;return[
+   syncCheck(m,tot,Math.min(C.httpCeil,C.apimTO)),
+   sizeCheck("Sync payload",m.msgM,C.syncMaxMB*0.5,C.syncMaxMB,"over sync maximum: claim check or async","large sync payload: streaming"),
+   sizeCheck("Logic App size",m.msgM,C.laSoftMB,C.laMaxMB,"above action cap: blob + reference","chunking"),
+   sizeCheck("BTP iFlow size",m.msgM,C.ciSoftMB,C.ciGuardMB,"above iFlow sender guard","streaming design"),
+   meterCheck(m),
+   capCheck("APIM backend connections",m,tot,C.apimConn*C.apimUnits,false,"add APIM units"),
+   capCheck("Azure processing",m,m.t,C.azCap,false,"scale out the plan"),
+   capCheck("BTP iFlow capacity (thin)",m,C.tThin,C.ciCap,false,"aggregate before BTP"),
+   capCheck("S/4 work processes",m,C.tS4,C.s4Cap,false,"S/4 cannot take the peak"),
+   s4RecCheck(m,true),s4SyncTO(C.tThin+C.tS4),roadCheck(m)]}},
+ {id:"P3",n:"P3 Event via Solace → BTP",c:"Publisher → Solace queue → AEM adapter → iFlow (processing) → S/4",
+  run:m=>{const C=CFG;return[
+   asyncLatCheck(),
+   sizeCheck("Solace message size",m.msgM,C.solSoftMB,C.solMaxMB,"above Solace cap: claim check","near Solace cap"),
+   sizeCheck("BTP iFlow size",m.msgM,C.ciSoftMB,C.ciGuardMB,"above iFlow sender guard","streaming design"),
+   meterCheck(m),
+   capCheck("BTP iFlow capacity",m,m.t,C.ciCap,true,"move processing upstream (P4) or aggregate"),
+   capCheck("S/4 work processes",m,C.tS4,C.s4Cap,true,"S/4 cannot drain even the average"),
+   s4RecCheck(m,false),roadCheck(m)]}},
+ {id:"P4",n:"P4 Event with Azure processing",c:"Logic App / Function (+ Service Bus) → Solace → thin iFlow → S/4",
+  run:m=>{const C=CFG;return[
+   asyncLatCheck(),
+   sizeCheck("Service Bus size",m.msgM,C.sbEntMB,C.sbMaxMB,"above Service Bus max: claim check","raise entity max size"),
+   sizeCheck("Logic App size",m.msgM,C.laSoftMB,C.laMaxMB,"above action cap","chunking"),
+   sizeCheck("Solace message size",m.msgM,C.solSoftMB,C.solMaxMB,"above Solace cap: claim check","near Solace cap"),
+   sizeCheck("BTP iFlow size",m.msgM,C.ciSoftMB,C.ciGuardMB,"above iFlow sender guard","streaming design"),
+   meterCheck(m),
+   capCheck("Azure processing",m,m.t,C.azCap,true,"scale out the plan"),
+   capCheck("BTP iFlow capacity (thin)",m,C.tThin,C.ciCap,true,"aggregate before BTP"),
+   capCheck("S/4 work processes",m,C.tS4,C.s4Cap,true,"S/4 cannot drain even the average"),
+   s4RecCheck(m,false),roadCheck(m)]}},
+ {id:"P5",n:"P5 Async request-reply",c:"APIM accepts (202) → Service Bus → Logic App → thin iFlow → S/4 → status / callback",
+  run:m=>{const C=CFG;const lat=IN.lat==="rt"?Object.assign(Z("B","real-time need","caller needs the answer in seconds",0,0,"x"),{layer:"Latency need"}):Object.assign(Z("F",B.D1(IN.lat),"202 + status or callback fits",0,0,"x"),{layer:"Latency need"});return[
+   lat,
+   sizeCheck("Service Bus size",m.msgM,C.sbEntMB,C.sbMaxMB,"above Service Bus max: claim check","raise entity max size"),
+   sizeCheck("Logic App size",m.msgM,C.laSoftMB,C.laMaxMB,"above action cap","chunking"),
+   sizeCheck("BTP iFlow size",m.msgM,C.ciSoftMB,C.ciGuardMB,"above iFlow sender guard","streaming design"),
+   meterCheck(m),
+   capCheck("Azure processing",m,m.t,C.azCap,true,"scale out the plan"),
+   capCheck("BTP iFlow capacity (thin)",m,C.tThin,C.ciCap,true,"aggregate on the processing leg"),
+   capCheck("S/4 work processes",m,C.tS4,C.s4Cap,true,"S/4 cannot drain even the average"),
+   s4RecCheck(m,false),roadCheck(m)]}},
+ {id:"P6",n:"P6 Claim check (on the P4 road)",c:"Payload → blob · reference via Service Bus / Solace → thin iFlow fetches → S/4",
+  run:m=>{const C=CFG,small=m.msgM<=C.slice;const ovh=Object.assign(Z(small?"A":"F",fmtKB(m.msgM)+" payload",small?"overhead not needed for small payloads":"designed for large payloads",0,0,"x"),{layer:"Claim-check fit"});return[
+   asyncLatCheck(),ovh,
+   sizeCheck("Broker message (reference)",C.refKB,C.solSoftMB,C.solMaxMB,"",""),
+   sizeCheck("BTP iFlow size (fetched payload)",m.msgM,C.ciSoftMB,C.ciGuardMB,"above iFlow sender guard: file / data path","streaming fetch"),
+   meterCheck(m),
+   capCheck("Azure processing",m,m.t,C.azCap,true,"scale out the plan"),
+   capCheck("BTP iFlow capacity (thin + fetch)",m,C.tThin*1.5,C.ciCap,true,"aggregate before BTP"),
+   capCheck("S/4 work processes",m,C.tS4,C.s4Cap,true,"S/4 cannot drain even the average"),
+   s4RecCheck(m,false),roadCheck(m)]}},
+ {id:"P7",n:"P7 Batch / file via ADF",c:"ADF (extract, chunk) → thin iFlow → S/4 via IDoc packets or file",batch:true,
+  run:m=>{const C=CFG;const l=IN.lat;const lat=Object.assign(Z(l==="rt"||l==="ns"?"B":l==="as"||l==="ack"?"A":"F",B.D1(l),l==="rt"||l==="ns"?"no real-time or near-sync on a batch path":l==="ack"?"file drop can be acknowledged, but delivery waits for the schedule":l==="as"?"needs a short schedule":"batch need matches",0,0,"x"),{layer:"Latency need"});
+   const mm=Object.assign({},m,{rpm:1});return[
+   lat,freqCheck(m,"batch"),
+   Object.assign(Z("F",fmtKB(m.msgM)+" per run","file / data path has no practical size cap",0,0,"x"),{layer:"ADF size"}),
+   capCheck("S/4 IDoc inbound",m,C.tS4,C.s4Cap,true,"S/4 cannot drain even the average"),
+   s4RecCheck(mm,false)]}}
+];
+const RANK={F:0,A:1,B:2},VL={F:"Fit",A:"Adapt",G:"Fragile",B:"Beyond",N:"–"};
+function evalP(p,m){
+ const cells=p.run(m).filter(Boolean);
+ const nb=cells.filter(c=>c.z==="B").length,na=cells.filter(c=>c.z==="A").length;
+ return {cells,v:nb?"B":na>=2?"G":na===1?"A":"F",score:nb*10+na};
+}
+function yearsTo(c){
+ const g=c.kind==="size"?IN.gS:c.kind==="rate"?IN.gV:0;
+ if(!g||g<=1||!(c.lim>0)||!(c.val>0)||c.val>=c.lim)return null;
+ return 3*Math.log(c.lim/c.val)/Math.log(g);
+}
+
+/* ---------------- RENDER INPUTS ---------------- */
+const num=(id,label,step,band)=>`<div class="fld"><label for="${id}">${label}</label><input type="number" id="${id}" step="${step||1}" min="0"></div>${band?`<div class="note" id="b_${id}"></div>`:""}`;
+const sel=(id,label,opts)=>`<div class="fld"><label for="${id}">${label}</label><select id="${id}">${opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}</select></div>`;
+function buildInputs(){
+ document.getElementById("inputs").innerHTML=`
+ <div class="q"><div class="t">Volume <span class="tag">L3</span></div><div class="hint">Transactions (records) in the global busiest hour</div>
+  ${sel("rateMode","Peak-hour volume from",[["formula","Users × transactions × countries"],["extra","Extrapolation tab"],["direct","Direct number"]])}
+  <div id="r_formula">${num("users","Users or sites per country")}${num("tpu","Transactions per user in busiest hour",0.1)}${num("countries","Countries at full rollout")}</div>
+  <div id="r_direct">${num("direct","Records in the busiest hour")}</div>
+  <div id="r_extra" class="note"></div>
+  <div style="margin-top:4px"><span class="band" id="bR"></span></div></div>
+ <div class="q"><div class="t">Load shape and run frequency <span class="tag">L4 · L5</span></div><div class="hint">Peak versus average, and how the interface is triggered</div>
+  ${num("shape","Peak ÷ average ratio",0.5)}
+  ${sel("freq","Run frequency",[["cont","Continuous, event-driven"],["m15","Scheduled every ≤15 min"],["hour","Scheduled hourly"],["day","Scheduled daily"]])}
+  <div id="r_rpm">${num("rpm","Records per message (aggregation)")}</div>
+  <div style="margin-top:4px"><span class="band" id="bL4"></span> <span class="band" id="bL5"></span></div></div>
+ <div class="q"><div class="t">Size <span class="tag">L1 · L2</span></div><div class="hint">Header ${CFG.hdrKB} KB + lines × ${CFG.lineKB} KB (Config) + attachment</div>
+  ${num("linesT","Typical lines per document")}${num("linesM","Maximum lines (the biggest one imaginable)")}${num("attKB","Attachment or document per record (KB)")}
+  <div style="margin-top:4px"><span class="band" id="bL1"></span> <span class="band" id="bL2"></span></div></div>
+ <div class="q"><div class="t">Processing weight <span class="tag">P1</span></div><div class="hint">How much work happens to each record</div>
+  ${sel("weight","Weight",[["W1","W1 Pass-through (simple hand-over)"],["W2","W2 Light (some checks or lookups)"],["W3","W3 Heavy (fetch and validate across systems)"]])}
+  ${num("tOver","Override seconds per record (0 = Config default)",0.1)}
+  <div style="margin-top:4px"><span class="band" id="bP1"></span></div></div>
+ <div class="q"><div class="t">Latency need and growth <span class="tag">D1 · D3</span></div><div class="hint">How fast the sender or receiver needs it; 3-year multipliers</div>
+  ${sel("lat","Latency need",[["rt","Real-time answer, user waits (<5 s)"],["ack","Ack in seconds, processing async"],["ns","Near-sync (≤230 s)"],["as","Async (minutes)"],["ba","Batch (hours)"]])}
+  ${num("gV","Volume growth in 3 years ×",0.5)}${num("gS","Size growth in 3 years ×",0.1)}
+  <div style="margin-top:4px"><span class="band" id="bD1"></span> <span class="band" id="bD3"></span></div></div>
+ <div class="q"><div class="t">Mass event scenario <span class="tag">L5 F4 · C1</span></div><div class="hint">Campaign, month-end, mass update, initial load; evaluated separately on top of the average daily load</div>
+  ${sel("massOn","Evaluate a mass event",[["1","Yes"],["0","No"]])}
+  ${num("massRec","Records in the event")}${num("massWin","Window it must finish in (hours)",0.5)}${num("massRpm","Records per message (batch events)")}
+  <div style="margin-top:4px"><span class="band" id="bMass"></span></div></div>`;
+ Object.keys(EX).forEach(k=>{const el=document.getElementById(k);if(!el)return;el.addEventListener("input",()=>{IN[k]=el.tagName==="SELECT"&&isNaN(+el.value)?el.value:+el.value;if(el.tagName==="SELECT"&&["rateMode","freq","weight","lat"].includes(k))IN[k]=el.value;saveIn();run();})});
+}
+function fillInputs(){Object.keys(EX).forEach(k=>{const el=document.getElementById(k);if(el)el.value=IN[k]})}
+
+/* ---------------- RENDER CONFIG ---------------- */
+function buildCfg(){
+ document.getElementById("cfgBox").innerHTML=CFG_DEF.map(g=>`<h3>${g.g}</h3><div class="card" style="overflow-x:auto"><table><tr><th>Factor or limit</th><th class="num">Value</th><th>Unit</th><th class="num">Default</th><th>Conf.</th><th>Basis</th><th></th></tr>${g.items.map(([k])=>{const m=CFG_META[k];return `<tr id="cr_${k}"><td>${m.l}</td><td class="num"><input type="number" step="any" id="c_${k}"></td><td class="note">${m.u}</td><td class="num note">${fmt(m.d,3)}</td><td class="conf">${m.c}</td><td class="note">${m.b}</td><td><button class="btn mini" data-r="${k}">reset</button></td></tr>`}).join("")}</table></div>`).join("");
+ Object.keys(CFG).forEach(k=>{const el=document.getElementById("c_"+k);el.addEventListener("input",()=>{const v=parseFloat(el.value);if(isFinite(v)){CFG[k]=v;saveCfg();paintCfg();buildInputs();fillInputs();run();}})});
+ document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{const k=b.dataset.r;CFG[k]=CFG_META[k].d;document.getElementById("c_"+k).value=CFG[k];saveCfg();paintCfg();buildInputs();fillInputs();run();});
+}
+function fillCfg(){Object.keys(CFG).forEach(k=>document.getElementById("c_"+k).value=CFG[k])}
+function paintCfg(){let n=0;Object.keys(CFG).forEach(k=>{const ch=CFG[k]!==CFG_META[k].d;if(ch)n++;document.getElementById("cr_"+k).classList.toggle("chg",ch)});const t=n?`${n} value${n>1?"s":""} changed from defaults`:"All defaults";document.getElementById("cfgCount").textContent=t;document.getElementById("cfgState").textContent="Config: "+t.toLowerCase();}
+
+/* ---------------- RUN ---------------- */
+function run(){
+ document.getElementById("r_formula").hidden=IN.rateMode!=="formula";
+ document.getElementById("r_direct").hidden=IN.rateMode!=="direct";
+ document.getElementById("r_extra").hidden=IN.rateMode!=="extra";
+ document.getElementById("r_extra").textContent=IN.rateMode==="extra"?`From Extrapolation tab: ${fmt(Math.round(extra().res))} per hour`:"";
+ document.getElementById("r_rpm").hidden=IN.freq!=="cont";
+ ["massRec","massWin","massRpm"].forEach(k=>document.getElementById(k).closest(".fld").classList.toggle("off",!+IN.massOn));
+ const n=measures("now"),y=measures("y3"),ms=+IN.massOn?measures("mass"):null;
+ document.getElementById("bR").textContent=B.L3(n.R);
+ document.getElementById("bL4").textContent=B.L4(IN.shape);
+ document.getElementById("bL5").textContent=B.L5(IN.freq);
+ document.getElementById("bL1").textContent=B.L1(n.msgM)+" (largest message)";
+ document.getElementById("bL2").textContent=B.L2(n.ratioL2);
+ document.getElementById("bP1").textContent=B.P1(IN.weight)+` · ${fmt(n.t)} s/record`;
+ document.getElementById("bD1").textContent=B.D1(IN.lat);
+ document.getElementById("bD3").textContent=B.D3(IN.gV);
+ document.getElementById("bMass").textContent=ms?`${fmt(ms.massExtra,0)} records/h · `+B.C1(IN.massRec):"off";
+ renderTrail(n,y,ms);
+ const res=PAT.map(p=>({p,n:evalP(p,n),y:evalP(p,y),m:ms?evalP(p,ms):null}))
+  .sort((a,b)=>(a.n.score*3+a.y.score*2+(a.m?a.m.score:0))-(b.n.score*3+b.y.score*2+(b.m?b.m.score:0)));
+ renderResults(res,n,y,ms);
+}
+function renderTrail(n,y,ms){
+ const C=CFG,R0=rateR();
+ const src=IN.rateMode==="formula"?`${fmt(IN.users)} × ${fmt(IN.tpu)} × ${fmt(IN.countries)}`:IN.rateMode==="extra"?"from Extrapolation":"entered";
+ const col=(f,b)=>[n,y,ms].map(m=>m?`<td class="num">${f(m)}</td>`:`<td class="num note">–</td>`).join("")+`<td>${b?`<span class="band">${b}</span>`:""}</td>`;
+ const rows=[
+  ["Peak rate R","users × transactions per user × countries",src,m=>fmt(m.R,0)+" /h",B.L3(n.R)],
+  ["Average rate","R ÷ peak-to-average",`÷ ${IN.shape}`,m=>fmt(m.avg,0)+" /h",B.L4(IN.shape)],
+  ["Daily volume","R ÷ peak-hour share",`÷ ${C.peakShare}%`,m=>m.sc==="mass"?"–":fmt(m.daily,0),""],
+  ["Record size, typical","header + lines × KB/line + attachment",`${C.hdrKB} + ${IN.linesT} × ${C.lineKB} + ${IN.attKB}`,m=>fmtKB(m.recT),""],
+  ["Record size, largest","header + max lines × KB/line + attachment",`${C.hdrKB} + ${IN.linesM} × ${C.lineKB} + ${IN.attKB}`,m=>fmtKB(m.recM),B.L2(n.ratioL2)],
+  ["Records per message","continuous: entered · scheduled: R per run",B.L5(IN.freq),m=>fmt(m.rpm,0),B.C1(n.rpm)],
+  ["Messages per hour M","R ÷ records per message","",m=>fmt(m.M,m.M<10?1:0),""],
+  ["Message size (largest)","(rpm − 1) × typical + largest","",m=>fmtKB(m.msgM),B.L1(n.msgM)],
+  ["Metered weight","ceil(message size ÷ "+C.slice+" KB)","typical / largest",m=>m.wT+" / "+m.wM,""],
+  ["Bytes per hour","M × typical message size","",m=>fmt(mb(m.M*m.msgT),1)+" MB/h",""],
+  ["Seconds per record","P1 band or override",B.P1(IN.weight),m=>fmt(m.t)+" s",B.P1(IN.weight)],
+  ["In flight","R ÷ 3600 × seconds per record","Little's law",m=>fmt(m.inflight),""],
+  ["Metered messages / month","daily ÷ rpm × "+C.workDays+" days × weight","",m=>m.sc==="mass"?"–":fmt(m.monthly,0),""]
+ ];
+ document.getElementById("trail").innerHTML=`<tr><th>Measure</th><th>Formula</th><th>Inputs</th><th class="num">Today</th><th class="num">3 years</th><th class="num">Mass event</th><th>Band (today)</th></tr>`+rows.map(r=>`<tr><td><b>${r[0]}</b></td><td class="f">${r[1]}</td><td class="note">${r[2]}</td>${col(r[3],r[4])}</tr>`).join("");
+}
+function renderResults(res,n,y,ms){
+ const best=res[0];
+ let first=null;best.n.cells.forEach(c=>{const yr=yearsTo(c);if(yr!==null&&(!first||yr<first.yr))first={yr,c}});
+ document.getElementById("headline").innerHTML=`<b>Best candidate:</b> ${best.p.n} — ${VL[best.n.v]} today, ${VL[best.y.v]} in 3 years${best.m?", "+VL[best.m.v]+" for the mass event":""}. `+
+  (first?`<b>First limit reached:</b> ${first.c.layer}, in about ${fmt(first.yr,1)} years at the growth entered. `:"")+
+  `Patterns are sorted best first (today weighted most). Read the reasons before deciding.`;
+ document.getElementById("out").innerHTML=res.map(r=>{
+  const ch=(lbl,e)=>e?`<span class="when">${lbl}</span><span class="chip ${e.v}">${VL[e.v]}</span>`:"";
+  const rows=r.n.cells.map((c,i)=>{const cy=r.y.cells[i],cm=r.m?r.m.cells[i]:null,yr=yearsTo(c);
+   return `<tr><td><b>${c.layer}</b></td><td class="note">${c.metric}</td><td><span class="z ${c.z}">${VL[c.z]}</span> <span class="note">${c.z!=="F"?c.rule:""}</span></td><td><span class="z ${cy?cy.z:"N"}">${cy?VL[cy.z]:"–"}</span> <span class="note">${cy&&cy.z!==c.z?cy.rule:""}</span></td>${r.m?`<td><span class="z ${cm?cm.z:"N"}">${cm?VL[cm.z]:"–"}</span> <span class="note">${cm&&cm.z!=="F"?cm.rule:""}</span></td>`:""}<td class="num">${yr!==null?fmt(yr,1)+" y":""}</td></tr>`}).join("");
+  /* mass-only rows (road) */
+  const extraM=r.m?r.m.cells.slice(r.n.cells.length).map(c=>`<tr><td><b>${c.layer}</b></td><td class="note">${c.metric}</td><td></td><td></td><td><span class="z ${c.z}">${VL[c.z]}</span> <span class="note">${c.rule}</span></td><td></td></tr>`).join(""):"";
+  const issues=r.n.cells.filter(c=>c.z!=="F").map(c=>`${c.layer}: ${c.rule}`);
+  return `<div class="card"><div class="row"><div><div class="pname">${r.p.n}</div><div class="chain">${r.p.c}</div></div><div>${ch("today",r.n)}${ch("3 yrs",r.y)}${ch("mass",r.m)}</div></div>${issues.length?`<div class="note" style="margin-top:6px">${issues.slice(0,3).join(" · ")}${issues.length>3?" …":""}</div>`:""}<details><summary>Layer checks</summary><div style="overflow-x:auto"><table><tr><th>Layer check</th><th>Today: metric vs limit</th><th>Today</th><th>3 years</th>${r.m?"<th>Mass event</th>":""}<th class="num">Years to limit</th></tr>${rows}${extraM}</table></div></details></div>`}).join("");
+ window._sum=res.map(r=>`${r.p.n}: ${VL[r.n.v]} today / ${VL[r.y.v]} 3 yrs${r.m?" / "+VL[r.m.v]+" mass":""}`).join("\n");
+}
+
+/* ---------------- WIRING ---------------- */
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));["eval","extra","config","how"].forEach(v=>document.getElementById("v-"+v).hidden=v!==b.dataset.v);});
+document.getElementById("resetIn").onclick=()=>{Object.assign(IN,EX);fillInputs();saveIn();run();};
+document.getElementById("copy").onclick=async()=>{const n=measures("now");const prof=`Peak ${fmt(n.R,0)}/h (${B.L3(n.R)}), largest message ${fmtKB(n.msgM)} (${B.L1(n.msgM)}), ${B.P1(IN.weight)}, ${B.D1(IN.lat)}, ${B.L5(IN.freq)}, growth ×${IN.gV}`;try{await navigator.clipboard.writeText(prof+"\n\n"+window._sum);document.getElementById("copied").textContent="Copied";}catch(e){document.getElementById("copied").textContent="Copy not allowed here";}};
+document.getElementById("cfgReset").onclick=()=>{Object.keys(CFG).forEach(k=>CFG[k]=CFG_META[k].d);fillCfg();saveCfg();paintCfg();buildInputs();fillInputs();run();document.getElementById("cfgMsg").textContent="Defaults restored";};
+document.getElementById("cfgCopy").onclick=async()=>{const t=Object.keys(CFG).map(k=>`${CFG_META[k].l}: ${CFG[k]} ${CFG_META[k].u}${CFG[k]!==CFG_META[k].d?" (default "+CFG_META[k].d+")":""}`).join("\n");try{await navigator.clipboard.writeText(t);document.getElementById("cfgMsg").textContent="Copied";}catch(e){document.getElementById("cfgMsg").textContent="Copy not allowed here";}};
+Object.keys(X_EX).forEach(k=>{const el=document.getElementById(k);el.addEventListener("input",()=>{XI[k]=k==="x_mode"?el.value:+el.value;saveIn();renderExtra();run();})});
+document.getElementById("x_use").onclick=()=>{IN.rateMode="extra";fillInputs();saveIn();run();document.getElementById("x_used").textContent="Evaluate now uses this value";};
+
+loadCfg();loadIn();buildCfg();fillCfg();paintCfg();buildInputs();fillInputs();
+Object.keys(X_EX).forEach(k=>document.getElementById(k).value=XI[k]);
+renderExtra();run();
+</script>
+</body>
+</html>

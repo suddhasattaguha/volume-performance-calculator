@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Designing for volume — concepts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap">
+<style>
+:root{--ink:#16213A;--paper:#F4F4F1;--paper2:#E6E7E2;--card:#FBFBF8;--soft:#4A5568;--acc:#2F6C8F;--warm:#C8702A;--fit:#3B7A68;--adapt:#B07A1E;--beyond:#A8443A;--slate:#5E6B7E;--line:#C9CBC4}
+html,body{margin:0;height:100%;background:#0e1424;overflow:hidden;font-family:'Inter',Arial,sans-serif}
+#view{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#deck{width:1920px;height:1080px;position:relative;transform-origin:center center;flex:none}
+section{position:absolute;inset:0;box-sizing:border-box;padding:110px 128px;background:var(--paper);color:var(--ink);display:none;flex-direction:column;gap:40px;overflow:hidden}
+section.on{display:flex}
+section.alt{background:var(--paper2)}
+section.dark{background:var(--ink);color:#F4F4F1}
+aside{display:none}
+h1,h2,h3{font-family:'Space Grotesk',Arial,sans-serif;margin:0}
+h1{font-size:104px;line-height:1.05;font-weight:700}
+h2{font-size:62px;line-height:1.1;font-weight:700}
+p{margin:0;font-size:32px;line-height:1.4}
+.eyebrow{font-size:24px;letter-spacing:3px;text-transform:uppercase;color:var(--warm);font-weight:600}
+section.dark .eyebrow{color:#F0C9A3}
+.lead{font-size:40px;line-height:1.35;color:var(--soft)}
+section.dark .lead{color:#C9D1E0}
+.note{font-size:28px;color:var(--soft);line-height:1.4}
+section.dark .note{color:#C9D1E0}
+.cols{display:flex;gap:40px}
+.col{flex:1;border-radius:16px;padding:44px;display:flex;flex-direction:column;gap:18px;background:var(--card)}
+.col.calm{border-top:10px solid var(--fit)}.col.flip{border-top:10px solid var(--beyond)}
+.col .ch{font-family:'Space Grotesk',Arial,sans-serif;font-size:40px;font-weight:700}
+.col .cb{font-size:30px;color:var(--soft);line-height:1.4}
+.col .cv{font-size:28px;font-weight:700}
+.col.calm .cv{color:var(--fit)}.col.flip .cv{color:var(--beyond)}
+.chain{display:flex;align-items:stretch;gap:14px}
+.node{flex:1;background:var(--card);border:3px solid var(--line);border-radius:14px;padding:28px 22px;display:flex;flex-direction:column;gap:12px}
+.node .nn{font-family:'Space Grotesk',Arial,sans-serif;font-size:32px;font-weight:700}
+.node .nl{font-size:24px;color:var(--soft);line-height:1.35}
+.node.low{border-color:var(--warm);background:#FBEFE6}.node.low .nl{color:#8A3A10;font-weight:600}
+.arrow{font-size:44px;color:#8F938A;align-self:center}
+.groups{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.group{background:var(--card);border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:14px;border-top:8px solid var(--acc)}
+.group.new{border-top-color:var(--warm)}
+.group .gn{font-family:'Space Grotesk',Arial,sans-serif;font-size:36px;font-weight:700}
+.group .gd{font-size:26px;color:var(--soft);line-height:1.45}
+.edges{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.edge{font-family:'Space Grotesk',Arial,sans-serif;font-size:30px;font-weight:700;background:var(--ink);color:#F4F4F1;border-radius:999px;padding:10px 26px}
+.edges .el{font-size:26px;color:var(--soft)}
+.verdicts{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.verdicts.five{grid-template-columns:repeat(5,1fr)}
+.verdict{border-radius:16px;padding:34px 30px;display:flex;flex-direction:column;gap:14px;color:#FBFBF8}
+.verdict .vn{font-family:'Space Grotesk',Arial,sans-serif;font-size:42px;font-weight:700}
+.verdict .vr{font-size:26px;line-height:1.4}
+.verdict .vd{font-size:25px;line-height:1.4;font-weight:600}
+.v-fit{background:var(--fit)}.v-adapt{background:var(--adapt)}.v-beyond{background:var(--beyond)}.v-ns{background:var(--slate)}
+.v-fragile{background:var(--card);color:var(--ink);border:4px dashed var(--adapt)}.v-fragile .vn{color:var(--adapt)}
+.ladder{display:flex;flex-direction:column;gap:12px}
+.rung{display:flex;align-items:center;gap:28px;background:var(--card);border-radius:12px;padding:18px 28px}
+.rung .rn{font-family:'Space Grotesk',Arial,sans-serif;font-size:40px;font-weight:700;color:var(--warm);width:44px}
+.rung .rt{font-size:30px;font-weight:600;width:520px}
+.rung .rd{font-size:24px;color:var(--soft);flex:1}
+.rung .rp{font-size:24px;font-weight:700;width:260px;text-align:right}
+.both{color:var(--fit)}.az{color:var(--acc)}.lvl{color:var(--beyond)}
+.rule{border-left:6px solid var(--warm);padding:6px 0 6px 28px}
+.rule p{font-size:32px;font-weight:600}
+.layers{display:flex;gap:20px;align-items:stretch}
+.layer{flex:1;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:12px;background:var(--card)}
+.layer.mid{background:var(--ink);color:#F4F4F1}
+.layer .ln{font-family:'Space Grotesk',Arial,sans-serif;font-size:36px;font-weight:700}
+.layer .ld{font-size:26px;line-height:1.4;color:var(--soft)}
+.layer.mid .ld{color:#C9D1E0}
+.formulas{display:flex;flex-direction:column;gap:14px}
+.formula{display:flex;gap:24px;align-items:baseline;font-size:30px}
+.formula .fk{font-family:'Space Grotesk',Arial,sans-serif;font-weight:700;width:300px;color:var(--acc)}
+.formula .fv{flex:1;line-height:1.4}
+.compare{display:flex;gap:40px}
+.case{flex:1;border-radius:16px;padding:44px;display:flex;flex-direction:column;gap:16px;background:var(--card)}
+.case.ok{border-left:12px solid var(--fit)}.case.bad{border-left:12px solid var(--beyond)}
+.case .cn{font-family:'Space Grotesk',Arial,sans-serif;font-size:36px;font-weight:700}
+.case .cbig{font-family:'Space Grotesk',Arial,sans-serif;font-size:96px;font-weight:700;line-height:1}
+.case.ok .cbig,.case.ok .cz{color:var(--fit)}.case.bad .cbig,.case.bad .cz{color:var(--beyond)}
+.case .cs{font-size:28px;color:var(--soft)}
+.case .cz{font-size:32px;font-weight:700}
+.triggers{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.trig{background:var(--card);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:10px;border-top:6px solid var(--warm)}
+.trig .tt{font-family:'Space Grotesk',Arial,sans-serif;font-size:32px;font-weight:700}
+.trig .td{font-size:24px;color:var(--soft);line-height:1.4}
+.calc{font-size:30px;background:var(--card);border-radius:14px;padding:24px 32px;line-height:1.45}
+.calc b{color:var(--acc)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.opt{border:3px solid #3A4A6B;border-radius:14px;padding:28px 32px;display:flex;flex-direction:column;gap:8px}
+.opt .on{font-family:'Space Grotesk',Arial,sans-serif;font-size:34px;font-weight:700}
+.opt .od{font-size:26px;color:#C9D1E0;line-height:1.4}
+.closing{display:flex;flex-direction:column;gap:22px}
+.closing .cl{font-size:38px;line-height:1.35;border-left:6px solid #F0C9A3;padding-left:28px}
+/* new slides */
+.tz{display:flex;gap:40px;align-items:stretch}
+.tzbox{flex:1;background:var(--card);border-radius:16px;padding:30px 34px;display:flex;flex-direction:column;gap:14px}
+.tzbox .tl{font-family:'Space Grotesk',Arial,sans-serif;font-size:30px;font-weight:700}
+.tzbox svg{width:100%;height:220px}
+.big{font-family:'Space Grotesk',Arial,sans-serif;font-size:72px;font-weight:700;line-height:1}
+.two{display:flex;gap:40px}
+.panel{flex:1;background:var(--card);border-radius:16px;padding:36px 40px;display:flex;flex-direction:column;gap:18px}
+.panel .ph{font-family:'Space Grotesk',Arial,sans-serif;font-size:36px;font-weight:700}
+.panel .pq{font-size:26px;color:var(--soft)}
+.chips{display:flex;gap:14px;flex-wrap:wrap}
+.chip{font-family:'Space Grotesk',Arial,sans-serif;font-size:28px;font-weight:700;border-radius:999px;padding:10px 26px;color:#fff}
+.c-s{background:var(--fit)}.c-n{background:var(--adapt)}.c-c{background:var(--beyond)}.c-f{background:var(--fit)}.c-a{background:var(--adapt)}.c-b{background:var(--beyond)}.c-x{background:var(--slate)}.c-na{background:#B9BCB4;color:#2b2f38}
+.est{display:flex;gap:28px;align-items:stretch}
+.estcard{flex:1.3;background:var(--card);border-radius:16px;padding:34px 38px;display:flex;flex-direction:column;gap:16px;border:3px solid var(--line)}
+.estcard .lbl{font-size:22px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);font-weight:700}
+.estcard .val{font-family:'Space Grotesk',Arial,sans-serif;font-size:64px;font-weight:700}
+.estcard .acts{display:flex;gap:14px;flex-wrap:wrap}
+.estcard .act{font-size:24px;font-weight:600;border:2px solid var(--acc);color:var(--acc);border-radius:10px;padding:6px 16px}
+.estcard .fx{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:22px;background:var(--paper);border-radius:10px;padding:14px 18px;line-height:1.5;color:var(--soft)}
+.conf{flex:1;display:flex;flex-direction:column;gap:14px}
+.cf{display:flex;gap:18px;align-items:center;background:var(--card);border-radius:12px;padding:16px 22px}
+.cf b{font-family:'Space Grotesk',Arial,sans-serif;font-size:36px;width:44px;color:var(--acc)}
+.cf span{font-size:25px;color:var(--soft)}
+.steps{display:flex;gap:14px;align-items:stretch}
+.step{flex:1;border-radius:14px;padding:26px 22px;display:flex;flex-direction:column;gap:10px;background:#22304F;border:2px solid #3A4A6B}
+.step .sn{font-family:'Space Grotesk',Arial,sans-serif;font-size:30px;font-weight:700}
+.step .sd{font-size:22px;color:#C9D1E0;line-height:1.4}
+.step.plus{border-style:dashed;background:transparent;align-items:center;justify-content:center}
+.step.plus .sn{font-size:56px;color:#F0C9A3}
+.blocked{font-size:24px;color:#F0A8A0}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}}
+section.on .col,section.on .node,section.on .group,section.on .verdict,section.on .rung,section.on .layer,section.on .case,section.on .trig,section.on .opt,section.on .closing .cl,section.on .tzbox,section.on .panel,section.on .cf,section.on .step{animation:rise .5s ease-out both}
+section.on :is(.col,.node,.group,.verdict,.rung,.layer,.case,.trig,.opt,.cl,.tzbox,.panel,.cf,.step):nth-child(2){animation-delay:.1s}
+section.on :is(.node,.group,.verdict,.rung,.layer,.trig,.opt,.cl,.cf,.step):nth-child(3){animation-delay:.2s}
+section.on :is(.group,.verdict,.rung,.opt,.cl,.cf,.step):nth-child(4){animation-delay:.3s}
+section.on :is(.node,.verdict,.rung,.step):nth-child(5){animation-delay:.4s}
+/* chrome */
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px;background:linear-gradient(transparent,rgba(8,12,22,.75));opacity:0;transition:opacity .25s}
+body:hover #bar,#bar:focus-within{opacity:1}
+#bar button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 14px;font-size:14px;cursor:pointer}
+#bar button:hover{background:rgba(255,255,255,.22)}
+#count{color:#fff;font-size:14px;min-width:70px;text-align:center}
+#prog{position:fixed;left:0;top:0;height:3px;background:#C8702A;transition:width .3s}
+#notes{position:fixed;left:50%;bottom:58px;transform:translateX(-50%);max-width:880px;width:calc(100% - 40px);background:rgba(8,12,22,.92);color:#E6E9F0;font-size:15px;line-height:1.5;border-radius:10px;padding:14px 18px;display:none}
+#notes.on{display:block}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div id="view"><div id="deck">
+
+<section class="dark" style="justify-content:center">
+<p class="eyebrow">Architects · Solution designers · Delivery leads</p>
+<h1>Designing for volume</h1>
+<p class="lead">Where design choices make a difference, and where they stop.</p>
+<aside>Every interface is designed one at a time, on platforms that already exist. This session looks at one practical question: given those platforms, how much volume can a design absorb, and when does the answer stop being a design question at all?</aside>
+</section>
+
+<section>
+<p class="eyebrow">Part 1 · The real question</p>
+<h2>Precision is not the point</h2>
+<div class="cols">
+<div class="col calm"><p class="ch">Inside a range</p><p class="cb">10 vs 1,000 messages an hour. 5 KB vs 20 KB.</p><p class="cv">The template holds. Nothing changes.</p></div>
+<div class="col flip"><p class="ch">Across a line</p><p class="cb">20,000 an hour at global rollout. 2 MB orders. 90 seconds of orchestration each.</p><p class="cv">The design flips.</p></div>
+</div>
+<p class="note">Fixed-template platforms have no per-interface autoscaling. The useful work is finding the ranges and the lines between them.</p>
+<aside>Inside a range, a more precise number changes nothing. Only crossing into the next range changes the design.</aside>
+</section>
+
+<section class="alt">
+<p class="eyebrow">Part 2 · The mechanics</p>
+<h2>The chain and its lowest bridge</h2>
+<div class="chain">
+<div class="node"><p class="nn">Azure APIM</p><p class="nl">Premium ~4,000 req/s per unit (indicative); v2 buffers only 2 MiB</p></div>
+<p class="arrow">→</p>
+<div class="node"><p class="nn">Logic App</p><p class="nl">100 MiB per message; 225 s HTTP timeout</p></div>
+<p class="arrow">→</p>
+<div class="node low"><p class="nn">Solace</p><p class="nl">30 MB guaranteed message (10 MB on smallest classes)</p></div>
+<p class="arrow">→</p>
+<div class="node"><p class="nn">BTP iFlow</p><p class="nl">One shared tenant; 40 MB sender guard; 250 KB metering</p></div>
+<p class="arrow">→</p>
+<div class="node"><p class="nn">S/4HANA</p><p class="nl">Fixed capacity</p></div>
+</div>
+<div class="rule"><p>The tightest active limit sets what the whole chain can carry.</p></div>
+<aside>Each layer has limits from vendor documentation. A Logic App that takes 100 MB doesn't help when Solace caps at 30. Sources and confidence levels are in the Guide inside the calculator.</aside>
+</section>
+
+<section>
+<h2>The scale: dimensions read as ranges</h2>
+<div class="groups">
+<div class="group"><p class="gn">Load</p><p class="gd">Biggest message, busiest hour, peak vs average, run frequency</p></div>
+<div class="group"><p class="gn">Character</p><p class="gd">Records per message, continuous or batch</p></div>
+<div class="group"><p class="gn">Demand</p><p class="gd">End-to-end SLA, growth</p></div>
+<div class="group new"><p class="gn">Complexity</p><p class="gd">Simple, medium, complex</p></div>
+</div>
+<div class="edges"><p class="el">Band edges sit where real limits sit:</p><p class="edge">250 KB</p><p class="edge">1 MB</p><p class="edge">10 MB</p><p class="edge">30 MB</p><p class="edge">100 MB</p></div>
+<p class="note">Volume edges move with size: 10 messages matter at 50 MB, thousands don't at 10 KB.</p>
+<aside>Where no vendor limit exists, the edge is empirical and marked so. Volume and size combine: what matters is bytes per hour and messages in process at once.</aside>
+</section>
+
+<section class="alt">
+<p class="eyebrow">New · How volume is counted</p>
+<h2>The world is not one country times N</h2>
+<div class="tz">
+<div class="tzbox"><p class="tl">One region, office hours</p>
+<svg viewBox="0 0 240 100" preserveAspectRatio="none"><g fill="#2F6C8F">
+<rect x="70" y="96" width="8" height="4"/><rect x="80" y="84" width="8" height="16"/><rect x="90" y="64" width="8" height="36"/><rect x="100" y="48" width="8" height="52"/><rect x="110" y="44" width="8" height="56" fill="#C8702A"/><rect x="120" y="52" width="8" height="48"/><rect x="130" y="68" width="8" height="32"/><rect x="140" y="60" width="8" height="40"/><rect x="150" y="52" width="8" height="48"/><rect x="160" y="56" width="8" height="44"/><rect x="170" y="68" width="8" height="32"/><rect x="180" y="80" width="8" height="20"/><rect x="190" y="92" width="8" height="8"/></g></svg>
+<p class="big" style="color:var(--warm)">≈ 15–20%</p><p class="note">of the day lands in the busiest hour</p></div>
+<div class="tzbox"><p class="tl">Three regions, shifted to UTC and summed</p>
+<svg viewBox="0 0 240 100" preserveAspectRatio="none"><g fill="#2F6C8F">
+<rect x="0" y="80" width="8" height="20"/><rect x="10" y="78" width="8" height="22"/><rect x="20" y="72" width="8" height="28"/><rect x="30" y="66" width="8" height="34"/><rect x="40" y="62" width="8" height="38"/><rect x="50" y="64" width="8" height="36"/><rect x="60" y="66" width="8" height="34"/><rect x="70" y="62" width="8" height="38"/><rect x="80" y="58" width="8" height="42"/><rect x="90" y="56" width="8" height="44" fill="#C8702A"/><rect x="100" y="60" width="8" height="40"/><rect x="110" y="64" width="8" height="36"/><rect x="120" y="60" width="8" height="40"/><rect x="130" y="58" width="8" height="42"/><rect x="140" y="62" width="8" height="38"/><rect x="150" y="66" width="8" height="34"/><rect x="160" y="70" width="8" height="30"/><rect x="170" y="74" width="8" height="26"/><rect x="180" y="72" width="8" height="28"/><rect x="190" y="70" width="8" height="30"/><rect x="200" y="74" width="8" height="26"/><rect x="210" y="78" width="8" height="22"/><rect x="220" y="80" width="8" height="20"/><rect x="230" y="82" width="8" height="18"/></g></svg>
+<p class="big" style="color:var(--fit)">≈ 5–12%</p><p class="note">of the global day in the busiest hour, depending on the mix</p></div>
+</div>
+<div class="rule"><p>Busiest hour = the highest point of the summed curves, not one country's peak × countries. Central jobs that run at one time add up fully.</p></div>
+<aside>Each region's daily curve is shifted by its UTC offset and weighted by how much it contributes; the busiest UTC hour is taken. Three equal regions give about 4–5% of the global day in the busiest hour; a Europe-heavy mix gives 9–12%. Scheduled jobs released centrally break this spreading and must be counted in full.</aside>
+</section>
+
+<section>
+<h2>Zones per layer, one verdict per chain</h2>
+<div class="verdicts five">
+<div class="verdict v-fit"><p class="vn">Fit</p><p class="vr">Inside the comfortable load</p><p class="vd">Template holds</p></div>
+<div class="verdict v-adapt"><p class="vn">Adapt</p><p class="vr">Within capacity, or a queue absorbs the peak</p><p class="vd">Go, with that change written into the design</p></div>
+<div class="verdict v-fragile"><p class="vn">Fragile</p><p class="vr">Two or more Adapts</p><p class="vd">Compare with the next pattern</p></div>
+<div class="verdict v-beyond"><p class="vn">Beyond</p><p class="vr">Load exceeds capacity</p><p class="vd">Wrong selection</p></div>
+<div class="verdict v-ns"><p class="vn">Not suitable</p><p class="vr">Wrong shape, not too much</p><p class="vd">e.g. continuous traffic on a batch engine</p></div>
+</div>
+<p class="note">Each layer gets a zone for the interface's band. The weakest layer decides.</p>
+<aside>Fragile is the zone most often missed: each change is fine alone, but together they break. Not suitable is not a capacity failure: the component is built for a different traffic shape.</aside>
+</section>
+
+<section class="alt">
+<p class="eyebrow">New · Two different questions</p>
+<h2>Is the scale concerning? Does the platform fit?</h2>
+<div class="two">
+<div class="panel"><p class="ph">Scale tags, on each part</p><p class="pq">Source, message, influx, middleware, delivery, target. No platform named.</p>
+<div class="chips"><span class="chip c-s">Standard</span><span class="chip c-n">Needs attention</span><span class="chip c-c">Critical</span></div>
+<p class="note">Says how unusual the numbers are, before any platform choice.</p></div>
+<div class="panel"><p class="ph">Platform verdicts, in the results</p><p class="pq">SAP BTP, Azure, Solace, ADF, target: each component checked for size and for volume.</p>
+<div class="chips"><span class="chip c-f">Fit</span><span class="chip c-a">Adapt</span><span class="chip c-b">Beyond</span><span class="chip c-x">Not suitable</span><span class="chip c-na">Not applicable</span></div>
+<p class="note">Says where your numbers land against each component's limits.</p></div>
+</div>
+<aside>Keeping the two apart stops people from choosing a platform before they understand the load. The scale tags describe the interface; the verdicts describe the match.</aside>
+</section>
+
+<section class="alt">
+<p class="eyebrow">Part 3 · The turning point</p>
+<h2>The lever ladder, and where it ends</h2>
+<div class="ladder">
+<div class="rung"><p class="rn">1</p><p class="rt">Tune inside the component</p><p class="rd">Streaming, paging, no multicast</p><p class="rp both">BTP and Azure</p></div>
+<div class="rung"><p class="rn">2</p><p class="rt">Reshape the load</p><p class="rd">Aggregate, split, claim check, buffer</p><p class="rp both">BTP and Azure</p></div>
+<div class="rung"><p class="rn">3</p><p class="rt">Isolate capacity</p><p class="rd">Own plan, stateless Logic App, Function, Service Bus</p><p class="rp az">Azure only</p></div>
+<div class="rung"><p class="rn">4</p><p class="rt">Re-route to another engine</p><p class="rd">Data path, other platform</p><p class="rp lvl">Landscape level</p></div>
+<div class="rung"><p class="rn">5</p><p class="rt">Change the contract</p><p class="rd">Sync to async, real-time to batch</p><p class="rp lvl">With the business</p></div>
+</div>
+<div class="rule"><p>Do the heavy lifting where scaling is possible; keep the fixed hop to S/4 thin.</p></div>
+<aside>BTP Integration Suite has rungs 1 and 2 only: one tenant, iFlow only, tenant-wide scaling. If those can't bring the projected band inside the iFlow's envelope, no iFlow design will. That is a platform fact, and it moves the decision up a level.</aside>
+</section>
+
+<section>
+<p class="eyebrow">Part 4 · Making it repeatable</p>
+<h2>The bridge from business answers to bands</h2>
+<div class="layers">
+<div class="layer"><p class="ln">Business answers</p><p class="ld">Users, countries, busiest period, message content, complexity, SLA</p></div>
+<div class="layer mid"><p class="ln">The bridge</p><p class="ld">Fixed formulas, daily curves and a settings table of typical values</p></div>
+<div class="layer"><p class="ln">Technical envelope</p><p class="ld">Bands, scale tags, platform verdicts, growth triggers</p></div>
+</div>
+<div class="formulas">
+<div class="formula"><p class="fk">Busiest hour</p><p class="fv">peak of the region curves summed in UTC, scaled by country weights</p></div>
+<div class="formula"><p class="fk">Size</p><p class="fv">envelope + fields × bytes per field (by format), for normal and biggest</p></div>
+<div class="formula"><p class="fk">In process at once</p><p class="fv">messages per second × seconds per message (Little's law)</p></div>
+<div class="formula"><p class="fk">Backlog clears in</p><p class="fv">backlog ÷ (capacity − average rate)</p></div>
+</div>
+<aside>The same answers always give the same bands, so the verdict is repeatable across architects and projects. Defaults come from a settings table that architects override when they know better.</aside>
+</section>
+
+<section class="alt">
+<h2>One interface, two verdicts</h2>
+<p class="lead">Order interface, 20,000 an hour at global rollout (≈ 5.6 per second). Same volume, same size.</p>
+<div class="compare">
+<div class="case ok"><p class="cn">Light processing</p><p class="cs">About 5 seconds per order</p><p class="cbig">≈ 28</p><p class="cs">orders in process at once</p><p class="cz">Fit</p></div>
+<div class="case bad"><p class="cn">Heavy processing</p><p class="cs">About 90 seconds per order</p><p class="cbig">≈ 500</p><p class="cs">orders in process at once</p><p class="cz">Beyond, for one shared tenant</p></div>
+</div>
+<aside>Only complexity differs, and it decides the outcome. In process = 5.6 per second × processing time. Processing times are reference values to calibrate against measured interfaces.</aside>
+</section>
+
+<section>
+<p class="eyebrow">New · Nothing is a black box</p>
+<h2>Every number says where it comes from</h2>
+<div class="est">
+<div class="estcard"><p class="lbl">Estimated · busiest hour</p><p class="val">12.4k / h</p>
+<div class="acts"><span class="act">✓ Accept</span><span class="act">✎ Override</span><span class="act">ƒ Formula</span></div>
+<p class="fx">daily 160k × peak share 7.8% (EMEA + Americas curves)<br>factors used: curve = human · offsets −5 / +1 · weights ×3 / ×1</p></div>
+<div class="conf">
+<div class="cf"><b>A</b><span>Official vendor documentation</span></div>
+<div class="cf"><b>B</b><span>Vendor blog, KBA or benchmark</span></div>
+<div class="cf"><b>C</b><span>Community or secondary source</span></div>
+<div class="cf"><b>E</b><span>Empirical or assumed: to measure and calibrate</span></div>
+</div>
+</div>
+<p class="note">Every limit carries a confidence label. Change it for one run, or save it as your default.</p>
+<aside>Estimated values can be accepted, overridden or traced to their formula. Platform limits carry their source and confidence; E values are honest placeholders until measured on your own tenant.</aside>
+</section>
+
+<section>
+<h2>Growth becomes a trigger</h2>
+<div class="triggers">
+<div class="trig"><p class="tt">Biggest message above 10 MB</p><p class="td">Check streaming, Solace class, claim check</p></div>
+<div class="trig"><p class="tt">Busiest hour above 50k</p><p class="td">Aggregate, buffer, or move the decision up</p></div>
+<div class="trig"><p class="tt">Sync need above 225 s</p><p class="td">Switch to async request-reply</p></div>
+</div>
+<p class="calc">Years to breach = ln(limit ÷ today) ÷ ln(1 + growth). Example: biggest message <b>8 MB</b>, Solace cap <b>30 MB</b>, 40% a year → about <b>3.9 years</b>.</p>
+<p class="note">The layer with the least headroom breaks first.</p>
+<aside>A design can be right today and fragile in three years. The framework records a trigger: the point where the design must be revisited.</aside>
+</section>
+
+<section class="dark">
+<p class="eyebrow">Part 5 · Beyond the line</p>
+<h2>When it is no longer an interface decision</h2>
+<div class="opts">
+<div class="opt"><p class="on">More tenants, or distribute the load</p><p class="od">Split traffic across integration capacity</p></div>
+<div class="opt"><p class="on">A different platform for that traffic</p><p class="od">Where per-interface scaling exists</p></div>
+<div class="opt"><p class="on">The data path, or a separate road</p><p class="od">ADF, Datasphere, a bulk road</p></div>
+<div class="opt"><p class="on">Renegotiate the requirement</p><p class="od">With the business: timing, granularity, sync vs async</p></div>
+</div>
+<p class="note">Beyond the line, the call belongs to landscape and platform owners. The framework makes it early, explicitly, and with evidence.</p>
+<aside>The framework's job is to make that call early and with evidence, instead of discovering it at go-live in the twentieth country.</aside>
+</section>
+
+<section class="dark">
+<p class="eyebrow">Coming next</p>
+<h2>Compose the middleware, step by step</h2>
+<div class="steps">
+<div class="step"><p class="sn">API</p><p class="sd">Inbound only: APIM in front of an iFlow or Logic App</p></div>
+<div class="step"><p class="sn">Topic</p><p class="sd">Solace inbound: publish once</p></div>
+<div class="step"><p class="sn">Queue</p><p class="sd">Solace outbound: consumers × protocol limits</p></div>
+<div class="step"><p class="sn">iFlow / Logic App</p><p class="sd">Parallel consumers × worker nodes or instances</p></div>
+<div class="step plus"><p class="sn">+</p><p class="sd">Add step</p></div>
+</div>
+<p class="blocked">Invalid steps are blocked, e.g. an API on the outbound side.</p>
+<p class="note">Each step is checked on its own; hand-offs check size across hops, the bottleneck and the end-to-end SLA.</p>
+<aside>After the inputs and the platform evaluation, the designer composes the chain. Each component asks only for the setting that decides its capacity: protocol and service class, consumer count, parallel consumers and worker nodes, plan and instances.</aside>
+</section>
+
+<section class="dark">
+<p class="eyebrow">Close</p>
+<h2>What this gives delivery</h2>
+<div class="closing">
+<p class="cl">A shared language: ranges, zones, the line.</p>
+<p class="cl">Confident calls at design time, not surprises after go-live.</p>
+<p class="cl">Early escalation with evidence when an interface crosses the line.</p>
+<p class="cl">A repeatable assessment, the same for every architect.</p>
+</div>
+<aside>Still to calibrate on the tenant: worker nodes and iFlow throughput, Solace rates per class, Logic App actions per plan, and the reference processing times.</aside>
+</section>
+
+</div></div>
+<div id="notes"></div>
+<div id="bar"><button id="prev" aria-label="Previous slide">‹ Prev</button><span id="count"></span><button id="next" aria-label="Next slide">Next ›</button><button id="nt">Notes</button></div>
+<script>
+const S=[...document.querySelectorAll("#deck section")];let i=0;
+try{const h=parseInt(location.hash.replace("#s",""));if(h>0&&h<=S.length)i=h-1}catch(e){}
+const fit=()=>{const d=document.getElementById("deck"),k=Math.min(innerWidth/1920,innerHeight/1080);d.style.transform=`scale(${k})`;};
+const nt=document.getElementById("notes");
+function show(n){i=Math.max(0,Math.min(S.length-1,n));S.forEach((s,j)=>s.classList.toggle("on",j===i));document.getElementById("count").textContent=`${i+1} / ${S.length}`;document.getElementById("prog").style.width=((i+1)/S.length*100)+"%";const a=S[i].querySelector("aside");nt.textContent=a?a.textContent:"";}
+document.getElementById("prev").onclick=()=>show(i-1);document.getElementById("next").onclick=()=>show(i+1);
+document.getElementById("nt").onclick=()=>nt.classList.toggle("on");
+addEventListener("keydown",e=>{if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();show(i+1)}else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();show(i-1)}else if(e.key==="Home")show(0);else if(e.key==="End")show(S.length-1);else if(e.key==="n")nt.classList.toggle("on");});
+document.getElementById("view").addEventListener("click",e=>{const x=e.clientX/innerWidth;if(x>.66)show(i+1);else if(x<.33)show(i-1);});
+addEventListener("resize",fit);fit();show(i);
+</script>
+</body>
+</html>

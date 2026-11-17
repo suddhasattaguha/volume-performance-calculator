@@ -1,0 +1,497 @@
+<style>
+.infoRow{opacity:.62}
+.infoRow input[type=text]{width:100%;padding:6px 8px;border:1.5px dashed var(--line);border-radius:10px;background:transparent;color:var(--ink);font-size:14px}
+.infoTag{font-size:10.5px;font-weight:700;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-left:6px;text-transform:uppercase;letter-spacing:.04em}
+.feeds{font-size:10.5px;font-weight:700;color:var(--acc);background:var(--accbg);border-radius:4px;padding:1px 6px;margin-left:6px;white-space:nowrap}
+.reused{background:var(--bg);border:1px dashed var(--line);border-radius:10px;padding:7px 10px;font-size:12.5px;color:var(--mute);margin:8px 0}
+.reused b{color:var(--ink);font-weight:600}
+.bandTbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.bandTbl td{padding:4px 2px;border-top:1px solid var(--line)}
+.bandTbl input{width:64px;padding:5px 6px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:14px;text-align:right;font-weight:700}
+.bandTbl select{padding:5px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:13px}
+.calcBox{background:var(--accbg);border-radius:10px;padding:8px 10px;font-size:12.5px;margin-top:8px}
+.calcBox .f{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;color:var(--mute)}
+.prof td:nth-child(2),.prof td:nth-child(3){text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.prof td{padding:5px 3px;border-top:1px solid var(--line);font-size:13px;vertical-align:top}
+.prof th{font-size:11.5px;color:var(--mute);text-align:left;font-weight:600;padding:3px}
+.prof .bd{font-size:11px;font-weight:700;color:var(--acc);background:var(--accbg);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.pill.C{background:var(--fitbg);color:var(--fit)}.pill.W{background:var(--adbg);color:var(--ad)}.pill.D{background:var(--bebg);color:var(--be)}
+.z.C{background:var(--fitbg);color:var(--fit)}.z.W{background:var(--adbg);color:var(--ad)}.z.D{background:var(--bebg);color:var(--be)}
+.verdictBox.C{background:var(--fitbg)}.verdictBox.W{background:var(--adbg)}.verdictBox.D{background:var(--bebg)}
+.catOpt{display:block;text-align:left;width:100%;border-radius:10px!important;margin:0}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.pop.wide{width:400px}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><h1>Flow Check</h1><p class="sub">Describe one async interface from source to target. Tap each part, answer what you know, and get its evaluated workload profile.</p></div>
+ <div class="tools">
+  <div class="seg"><button id="vNow" class="on">Today</button><button id="vY3">In 3 years</button></div>
+  <button class="btn" id="ex">Example</button><button class="btn" id="clr">Reset</button>
+  <button class="gear" id="gear" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+ </div>
+</header>
+
+<div class="stage" id="stage">
+ <div class="hint" id="hint">Start anywhere: tap the source, the message, the pipes, the middleware or the target.</div>
+ <div class="scroller"><svg class="flow" id="svg" viewBox="0 0 1000 380" role="img" aria-label="Async flow: source, influx, middleware, delivery, target"></svg></div>
+ <div class="legend"><span style="--c:var(--idle)">not set yet</span><span style="--c:var(--fit)">Calm — within normal ranges</span><span style="--c:var(--ad)">Watch — needs deliberate design</span><span style="--c:var(--be)">Decision needed — beyond what one interface design absorbs</span></div>
+</div>
+
+<div class="res">
+ <div class="box">
+  <h3>Evaluated result</h3>
+  <div class="big"><span class="pill" id="ovPill">–</span><div id="ovText" class="note"></div></div>
+  <ul class="todo" id="todo"></ul>
+  <div style="margin-top:10px"><button class="btn" id="copy">Copy summary</button> <span class="note" id="copied"></span></div>
+ </div>
+ <div class="box">
+  <h3>Workload profile <span class="note">on the framework scale</span></h3>
+  <table class="prof" id="prof"></table>
+  <p class="note" style="margin-top:8px">Platform-neutral. Choosing and checking platforms is the next step. The full calculation trail is in the <a href="https://claude.ai/artifact/6j9YwTD8L8CpzbSSQBgxoU">Interface Envelope Evaluator</a>.</p>
+ </div>
+</div>
+</main>
+
+<script>
+/* ================= settings (behind the gear) ================= */
+const SET_DEF=[
+ {g:"Generic breakpoints (framework scale)",items:[
+  ["rateW","Busiest-hour messages: Watch above","/h",50000,"E"],
+  ["rateD","Busiest-hour messages: Decision needed above","/h",500000,"E"],
+  ["sizeW","Biggest message: Watch above","MB",1,"A"],
+  ["sizeW2","Biggest message: strong Watch above","MB",10,"B"],
+  ["sizeD","Biggest message: Decision needed above","MB",30,"A"],
+  ["recW","Records per message: Watch above","records",1000,"C"],
+  ["recD","Records per message: bulk-only above","records",50000,"C"],
+  ["inprocW","Messages in process at once: Watch above","msgs",50,"E"],
+  ["inprocD","Messages in process at once: Decision needed above","msgs",200,"E"],
+  ["burstW","Busiest ÷ average hour: bursty above","×",10,"E"],
+  ["ownRoad","Mass load per hour that needs its own road","/h",50000,"E"],
+  ["comfort","Comfort level at the target","%",70,"E"]]},
+ {g:"Answers translated into numbers",items:[
+  ["t_w1","Time per record: pass-through","s",0.5,"E"],
+  ["t_w2","Time per record: some checks","s",5,"E"],
+  ["t_w3","Time per record: heavy orchestration","s",90,"E"],
+  ["cap_few","Target parallel capacity: a few (e.g. S/4)","calls",10,"E"],
+  ["cap_dozens","Target parallel capacity: dozens","calls",50,"E"],
+  ["cap_hundreds","Target parallel capacity: hundreds","calls",500,"E"],
+  ["tgtT","Target time to post one record","s",0.5,"E"],
+  ["smallF","Speed-up of small batches vs single calls","×",20,"E"],
+  ["bulkF","Speed-up of bulk API or file vs single calls","×",200,"E"],
+  ["fS","Country size: small, relative to the reference","×",0.3,"E"],
+  ["fL","Country size: large, relative to the reference","×",3,"E"],
+  ["workDays","Working days per month","days",21,"A"],
+  ["weekDays","Working days per week","days",5,"A"]]},
+ {g:"Time-zone bands (UTC offset of the band's centre)",items:[
+  ["oAM","Americas","h",-5,"A"],["oEU","Europe and Africa","h",1,"A"],["oME","Middle East and India","h",4,"A"],["oAP","Asia-Pacific","h",8,"A"]]},
+ {g:"Message size calculation",items:[
+  ["nameLen","Average field name length","chars",12,"E"],
+  ["envB","Envelope per message (root, namespaces, metadata)","bytes",400,"E"],
+  ["idocSeg","IDoc segment record (1000 data + 63 admin)","bytes",1063,"A"],
+  ["idocCtl","IDoc control record (EDI_DC40)","bytes",524,"A"],
+  ["idocFps","Fields that fit in one IDoc segment (approx.)","fields",25,"E"],
+  ["b64","Base64 growth for files inside JSON or XML","×",1.37,"A"]]}
+];
+const S={},SM={};SET_DEF.forEach(g=>g.items.forEach(([k,l,u,d,c])=>{S[k]=d;SM[k]={l,u,d,c}}));
+try{const s=JSON.parse(localStorage.getItem("fc2_set")||"null");if(s)Object.keys(s).forEach(k=>{if(k in S)S[k]=+s[k]})}catch(e){}
+const saveSet=()=>{try{const o={};Object.keys(S).forEach(k=>{if(S[k]!==SM[k].d)o[k]=S[k]});localStorage.setItem("fc2_set",JSON.stringify(o))}catch(e){}};
+
+/* ================= daily curves (local hour shares) ================= */
+const RAW={
+ user:[0,0,0,0,0,0,.01,.04,.09,.13,.14,.12,.08,.10,.12,.11,.08,.05,.02,.01,0,0,0,0],
+ job:[.05,.30,.25,.10,.03,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.02,.03,.03,.04,.06],
+ machine:[1,1,1,1,1,1,1,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1.6,1,1,1,1]
+};
+const CURVE={};Object.keys(RAW).forEach(k=>{const t=RAW[k].reduce((a,b)=>a+b,0);CURVE[k]=RAW[k].map(v=>v/t)});
+const peakShare=k=>Math.max(...CURVE[k]);
+const BANDS=[["AM","Americas"],["EU","Europe and Africa"],["ME","Middle East and India"],["AP","Asia-Pacific"]];
+
+/* ================= categories ================= */
+const CATS={
+ demand:{n:"Demand document",d:"someone asks for something: order, request",q:[["dA","Who places them? (customers, users, stores)",""],["dB","Documents per creator per week",""]],daily:i=>i.dA*i.dB/S.weekDays,f:"creators × per week ÷ "+"working days"},
+ follow:{n:"Follow-on document",d:"triggered by another: delivery, invoice, ASN",q:[["fA","Triggering documents per day",""],["fB","Documents per trigger","×"]],daily:i=>i.fA*i.fB,f:"triggers per day × per trigger"},
+ event:{n:"Status / event",d:"something happened to an object",q:[["eA","Objects active per day",""],["eB","Events per object",""]],daily:i=>i.eA*i.eB,f:"objects × events"},
+ snap:{n:"Snapshot / report",d:"the state at a point in time: stock, sell-out",q:[["sA","Things counted (sites × items)",""],["sB","Reports per day",""]],daily:i=>i.sA*i.sB,f:"things counted × reports per day"},
+ master:{n:"Master data",d:"describes the business: material, customer, price",q:[["mA","Population (e.g. active materials)",""],["mB","% changed per month","%"]],daily:i=>i.mA*i.mB/100/S.workDays,f:"population × % per month ÷ working days"},
+ ref:{n:"Reference data",d:"codes, units, org structures",q:[["rA","Changes per month",""]],daily:i=>i.rA/S.workDays,f:"changes per month ÷ working days"}
+};
+
+/* ================= inputs ================= */
+const DEF={touched:{},
+ srcName:"",who:"user",bands:{AM:{n:0,s:"M"},EU:{n:1,s:"M"},ME:{n:0,s:"M"},AP:{n:0,s:"M"}},dayF:1,mass:"no",massRec:300000,massWin:4,growth:3,
+ objName:"",cat:"demand",kind:"doc",sizeMode:"direct",sizeVal:50,sizeUnit:"KB",maxF:10,fmtType:"json",struct:"hdr",hdrFields:20,lineFields:30,linesT:50,linesM:2000,valLen:12,fileKB:500,rpm:1,
+ know:"hour",scope:"one",qty:500,dA:2000,dB:2,fA:4000,fB:1.1,eA:4000,eB:4,sA:50000,sB:1,mA:20000,mB:5,rA:10,
+ midName:"",work:"w2",
+ tgtName:"",send:"one",absorb:"few",fresh:"min"};
+const EXAMPLE=Object.assign(JSON.parse(JSON.stringify(DEF)),{touched:{src:1,msg:1,inf:1,mid:1,del:1,tgt:1},
+ srcName:"Order capture (CRM)",bands:{AM:{n:12,s:"M"},EU:{n:20,s:"M"},ME:{n:0,s:"M"},AP:{n:8,s:"M"}},dayF:1.5,mass:"yes",
+ objName:"Sales order",sizeMode:"calc",midName:"Order enrichment",tgtName:"S/4HANA"});
+let I=JSON.parse(JSON.stringify(DEF));
+try{const s=JSON.parse(localStorage.getItem("fc2_in")||"null");if(s)I=Object.assign(I,s)}catch(e){}
+const saveIn=()=>{try{localStorage.setItem("fc2_in",JSON.stringify(I))}catch(e){}};
+let view="now",open=null;
+
+/* ================= helpers ================= */
+const fmt=v=>!isFinite(v)?"–":v>=1e6?(+(v/1e6).toFixed(v>=1e7?0:1))+"M":v>=1e4?Math.round(v/1e3)+"k":v>=1000?(+(v/1e3).toFixed(1))+"k":v>=10?Math.round(v)+"":v>=1?(+v.toFixed(1))+"":(+v.toFixed(2))+"";
+const fmtB=b=>b>=1048576?(+(b/1048576).toFixed(1))+" MB":b>=1024?(+(b/1024).toFixed(b>=10240?0:1))+" KB":Math.round(b)+" B";
+const fmtS=s=>s>=60?(+(s/60).toFixed(1))+" min":(+s.toFixed(s<1?2:1))+" s";
+const esc=t=>String(t||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ================= engine ================= */
+function deriveSize(){
+ const v=I.valLen,nm=S.nameLen,f=I.fmtType,lines=I.struct==="hdr";
+ const hf=I.hdrFields,lf=I.lineFields;
+ let perField=null,recOv=0,hdrB,lineB,envB=S.envB,note;
+ if(f==="json"){perField=nm+v+6;recOv=3;note=`"name":"value", → name ${nm} + value ${v} + 6`;}
+ else if(f==="xml"){perField=2*nm+5+v;recOv=2*nm+5;note=`<Name>value</Name> → 2 × ${nm} + ${v} + 5`;}
+ else if(f==="csv"){perField=v+1;recOv=2;envB=(lines?lf:hf)*(nm+1);note=`value ${v} + 1 delimiter, plus a header row`;}
+ else note=`${S.idocSeg}-byte segments, ~${S.idocFps} fields each, + ${S.idocCtl}-byte control record`;
+ if(f==="idoc"){hdrB=Math.max(1,Math.ceil(hf/S.idocFps))*S.idocSeg;lineB=Math.max(1,Math.ceil(lf/S.idocFps))*S.idocSeg;envB=S.idocCtl;}
+ else{hdrB=hf*perField+recOv;lineB=lf*perField+recOv;}
+ const file=I.kind==="file"?I.fileKB*1024*((f==="json"||f==="xml")?S.b64:1):0;
+ const typ=envB+hdrB+(lines?I.linesT*lineB:0)+file, big=envB+hdrB+(lines?I.linesM*lineB:0)+file;
+ return {perField,hdrB,lineB,envB,file,typB:typ,bigB:big,note,lines};
+}
+function sizeInfo(){
+ if(I.sizeMode==="calc"){const d=deriveSize();return {typB:d.typB,bigB:d.bigB};}
+ const t=Math.max(0.1,+I.sizeVal||1)*(I.sizeUnit==="MB"?1048576:1024);return {typB:t,bigB:t*I.maxF};
+}
+function weights(){const W={};let tot=0,cnt=0;BANDS.forEach(([k])=>{const b=I.bands[k]||{n:0,s:"M"};const f=b.s==="S"?S.fS:b.s==="L"?S.fL:1;W[k]=(+b.n||0)*f;tot+=W[k];cnt+=(+b.n||0)});return {W,tot,cnt};}
+function dailyRef(){ /* daily volume of one reference-size country */
+ const pk=peakShare(I.who),{tot}=weights();
+ if(I.know==="est")return {d:CATS[I.cat].daily(I),how:"estimate"};
+ let d=I.know==="hour"?I.qty/pk:I.know==="day"?I.qty:I.qty/S.workDays;
+ if(I.scope==="all"){ if(I.know==="hour")return {d:null,hourAll:I.qty}; d=tot>0?d/tot:d; }
+ return {d};
+}
+function hourly(dRef){ /* UTC hourly volume, normal day */
+ const {W}=weights(),c=CURVE[I.who],H=new Array(24).fill(0);
+ BANDS.forEach(([k])=>{if(!W[k])return;const off=S["o"+k];for(let h=0;h<24;h++){const lh=((h+off)%24+24)%24;H[h]+=W[k]*dRef*c[lh];}});
+ return H;
+}
+function calc(y3){
+ const g=y3?I.growth:1,{tot,cnt}=weights();
+ const dr=dailyRef();
+ let H,daily,busiest,naive;
+ if(dr.hourAll!=null){ /* busiest hour given for all countries together */
+  const shape=hourly(1),pk=Math.max(...shape),sum=shape.reduce((a,b)=>a+b,0)||1;
+  H=shape.map(v=>pk?v/pk*dr.hourAll:0);busiest=dr.hourAll;daily=pk?dr.hourAll/pk*sum:0;naive=busiest;
+ }else{H=hourly(dr.d);busiest=Math.max(...H);daily=H.reduce((a,b)=>a+b,0);naive=dr.d*peakShare(I.who)*tot;}
+ const peakHour=H.indexOf(Math.max(...H));
+ busiest*=g*I.dayF;daily*=g;naive*=g*I.dayF;H=H.map(v=>v*g);
+ const avg=daily/24, ratio=avg>0?busiest/avg:0;
+ const rpm=Math.max(1,+I.rpm||1), msgs=busiest/rpm;
+ const sz=sizeInfo(), recB=sz.typB, bigB=(rpm-1)*recB+sz.bigB, msgB=rpm*recB;
+ const secs=S["t_"+I.work]||5, inproc=busiest/3600*secs;
+ const f=I.send==="small"?S.smallF:I.send==="bulk"?S.bulkF:1, tT=S.tgtT/f, tcap=S["cap_"+I.absorb]||10;
+ const inflT=busiest/3600*tT, drainT=tcap/tT*3600;
+ const massRate=I.mass==="yes"?I.massRec/Math.max(.25,I.massWin):0;
+ return {g,H,peakHour,busiest,naive,daily,avg,ratio,rpm,msgs,recB,bigB,msgB,secs,inproc,tT,tcap,inflT,drainT,massRate,cnt,dRef:dr.d,hourAll:dr.hourAll};
+}
+const ZN={C:"Calm",W:"Watch",D:"Decision needed"};
+const worst=(a,b)=>({C:0,W:1,D:2}[a]>={C:0,W:1,D:2}[b]?a:b);
+function evaluate(y3){
+ const n=calc(y3),Z={};const mb=n.bigB/1048576;
+ /* source */
+ {let z="C",w=`${n.cnt} countr${n.cnt===1?"y":"ies"}, ${({user:"people in screens",job:"automated jobs",machine:"machines or devices"})[I.who]}.`,fix="";
+  if(I.dayF>=3){z="W";w+=` The busiest day is ×${I.dayF} a normal day.`;fix="Design for the busiest day, not a normal one.";}
+  if(I.growth>=5&&!y3){z="W";w+=` Growth ×${I.growth} in 3 years.`;fix=fix||"Check the 3-year view: the bands move.";}
+  if(I.mass==="yes"){if(n.massRate>S.ownRoad){z="D";w+=` Mass load: ${fmt(I.massRec)} records in ${I.massWin} h = ${fmt(n.massRate)} per hour.`;fix="Mass loads need their own road, separate from daily traffic.";}
+   else{z=worst(z,"W");w+=` Mass load of ${fmt(n.massRate)} per hour shares the daily road.`;fix=fix||"Plan it off-peak, or as batch events.";}}
+  Z.src={z,w,fix};}
+ /* message */
+ {let z="C",w=`Biggest message ≈ ${fmtB(n.bigB)}${n.rpm>1?` (${fmt(n.rpm)} records grouped)`:""}.`,fix="";
+  if(mb>S.sizeD){z="D";fix="Too big to travel as a message: use a claim check or a file / data-load path.";}
+  else if(mb>S.sizeW2){z="W";fix="Large: plan for streaming or a claim check for the big ones.";}
+  else if(mb>S.sizeW){z="W";fix=I.kind==="file"?"Files inside messages: consider a claim check (store the file, pass a reference).":"Above 1 MB: size limits and per-message cost start to matter.";}
+  if(n.rpm>S.recD){z="D";w+=` ${fmt(n.rpm)} records per message.`;fix="Bulk only: file or data-load path.";}
+  else if(n.rpm>S.recW){z=worst(z,"W");w+=` ${fmt(n.rpm)} records per message.`;fix=fix||"Large sets: they will need chunking.";}
+  Z.msg={z,w,fix};}
+ /* influx */
+ {let z="C",w=`Busiest hour ≈ ${fmt(n.busiest)} records${n.rpm>1?` in ${fmt(n.msgs)} messages`:""}, average ≈ ${fmt(n.avg)} per hour.`,fix="";
+  if(n.msgs>S.rateD){z="D";fix="Too many single messages for one flow: group them (batch events) or use a data-load path.";}
+  else if(n.msgs>S.rateW){z="W";fix="Above the comfortable range: needs a buffered, async design.";}
+  if(n.ratio>S.burstW){z=worst(z,"W");w+=` Bursty: busiest hour is ×${fmt(n.ratio)} the average.`;fix=fix||"Peaks need a buffer in front of the slowest layer.";}
+  Z.inf={z,w,fix};}
+ /* middleware */
+ {let z="C",w=`About ${fmt(n.inproc)} messages in process at once (busiest hour × ${fmtS(n.secs)} per record).`,fix="";
+  if(n.inproc>S.inprocD){z="D";fix="Very high parallel demand: the platform must scale for this flow, or the work per record must shrink.";}
+  else if(n.inproc>S.inprocW){z="W";fix="High parallel demand: check it against the platform's capacity in the next step.";}
+  Z.mid={z,w,fix};}
+ /* delivery */
+ {let z="C",w={one:"One record per call.",small:"Small batches.",bulk:"Bulk API or file."}[I.send],fix="";
+  if(n.rpm>S.recD&&I.send!=="bulk"){z="D";w+=` Messages carry ${fmt(n.rpm)} records.`;fix="Use the target's bulk or file interface.";}
+  else if(n.rpm>1&&I.send==="one"){z=n.rpm>S.recW?"D":"W";w+=` Messages carry ${fmt(n.rpm)} records, so they must be split again.`;fix="Hand over in small batches or bulk.";}
+  else if(n.rpm>S.recW&&I.send==="small"){z="W";w+=` ${fmt(n.rpm)} records per message is more than one batch call.`;fix="Chunk into batches the target accepts.";}
+  Z.del={z,w,fix};}
+ /* target */
+ {const c=n.tcap;let z,w,fix="";
+  if(n.inflT<=c*S.comfort/100){z="C";w=`About ${fmt(n.inflT)} calls at once against a capacity of ${c}: comfortable.`;}
+  else if(n.inflT<=c){z="W";w=`About ${fmt(n.inflT)} calls at once against ${c}: close to its limit at peak.`;fix="Little headroom: agree capacity with the target team.";}
+  else if(n.avg<=n.drainT){z="W";w=`At peak it needs ${fmt(n.inflT)} calls at once (capacity ${c}), but the average fits.`;fix="A buffer must absorb the peak; data arrives later at peak times.";}
+  else{z="D";w=`Even the average needs more than its capacity (${fmt(n.inflT)} at peak vs ${c}).`;fix=I.send==="one"?"Hand over in batches or bulk, or agree more capacity.":"Agree more capacity, or spread the load.";}
+  if(I.fresh==="sec"&&(z!=="C"||n.ratio>4||I.who==="job")){z=worst(z,"W");w+=" Data must appear within seconds, but peaks will queue.";fix=fix||"Agree a realistic freshness at peak times.";}
+  if(I.fresh==="sec"&&I.mass==="yes"){z=worst(z,"W");w+=" A mass load will delay live data.";}
+  Z.tgt={z,w,fix};}
+ return {Z,n};
+}
+
+/* ================= bands ================= */
+const B={
+ L3:r=>r<=1000?"R1 ≤1k/h":r<=50000?"R2 1k–50k/h":r<=500000?"R3 50k–500k/h":"R4 >500k/h",
+ L4:s=>s<3?"Flat <3×":s<=10?"Peaky 3–10×":"Burst >10×",
+ L5:w=>({user:"F1 Continuous (business hours)",job:"F3 Periodic (batch runs)",machine:"F1 Continuous (24 h)"})[w],
+ L1:b=>{const m=b/1048576;return m<=0.25?"S ≤250 KB":m<=1?"M 250 KB–1 MB":m<=10?"L 1–10 MB":m<=30?"XL 10–30 MB":"XXL >30 MB"},
+ L2:r=>r<10?"Uniform <10×":r<=100?"Variable 10–100×":"Extreme >100×",
+ C1:n=>n<=1?"Single":n<=1000?"Set 2–1k":n<=50000?"Bulk 1k–50k":"Mass >50k",
+ P1:w=>({w1:"W1 Pass-through",w2:"W2 Light",w3:"W3 Heavy"})[w],
+ D1:f=>({sec:"Real-time <5 s",min:"Async, minutes",hour:"Async, within the hour",day:"Batch, next day"})[f],
+ D3:g=>g<=2?"Stable ≤2×":g<5?"Growing 2–5×":"Explosive >5×"
+};
+
+/* ================= diagram ================= */
+const ST={
+ src:{name:"Source",sub:"who · where · events · growth",x:110,y:215},
+ inf:{name:"Influx",sub:"how many · when",x:305,y:215},
+ msg:{name:"Message",sub:"what · how big",x:305,y:95},
+ mid:{name:"Middleware",sub:"work per record",x:500,y:215},
+ del:{name:"Delivery",sub:"result only",x:695,y:215},
+ tgt:{name:"Target",sub:"handover · capacity · speed",x:890,y:215}
+};
+const ORDER=["src","msg","inf","mid","del","tgt"];
+const colorOf=z=>z?{C:"var(--fit)",W:"var(--ad)",D:"var(--be)"}[z]:"var(--idle)";
+const bgOf=z=>z?{C:"var(--fitbg)",W:"var(--adbg)",D:"var(--bebg)"}[z]:"var(--idlebg)";
+const GLYPH={
+ src:'<rect x="-20" y="-15" width="40" height="28" rx="4"/><path d="M-9 20h18M0 13v7"/><circle cx="-9" cy="-3" r="3.5"/><path d="M-1 -5h12M-1 1h8"/>',
+ mid:'<g class="spin" id="gearG"><circle r="7"/><path d="M0 -19v6M0 13v6M-19 0h6M13 0h6M-13.4 -13.4l4.2 4.2M9.2 9.2l4.2 4.2M-13.4 13.4l4.2 -4.2M9.2 -9.2l4.2 -4.2"/></g>',
+ tgt:'<ellipse cx="0" cy="-13" rx="16" ry="6"/><path d="M-16 -13v26c0 3.3 7.2 6 16 6s16-2.7 16-6v-26"/><path d="M-16 0c0 3.3 7.2 6 16 6s16-2.7 16-6"/>'
+};
+function draw(){
+ const y3=view==="y3",{Z,n}=evaluate(y3),T=I.touched,zz=k=>T[k]?Z[k].z:null;
+ const vol=Math.log10(Math.max(10,n.busiest)),thick=Math.min(30,6+(vol-1)*4),speed=Math.max(.35,3.2-(vol-1)*.45);
+ const gearSpeed=Math.max(.6,8-Math.min(7,n.inproc/(S.inprocW/7)));
+ const msgScale=Math.min(1.6,.7+Math.log10(Math.max(1,n.bigB/1024))/5);
+ let s="";
+ const pipe=(k,x1,x2,y,th)=>{const c=colorOf(zz(k));return `<g class="hit" data-k="${k}" tabindex="0" role="button" aria-label="${ST[k].name}">
+  <rect x="${x1}" y="${y-28}" width="${x2-x1}" height="56" fill="transparent"/>
+  <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${bgOf(zz(k))}" stroke-width="${th+10}" stroke-linecap="round"/>
+  <line class="ring" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="${th}" stroke-linecap="round" opacity=".35"/>
+  <line class="dots" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="${Math.max(4,th*.45)}" stroke-dasharray="4 20" stroke-linecap="round" style="animation-duration:${speed}s"/>
+  <path d="M${x2+4} ${y-9} L${x2+16} ${y} L${x2+4} ${y+9}" fill="${c}"/>
+  <text class="nodeLbl" x="${(x1+x2)/2}" y="${y+46}" style="font-size:15px">${ST[k].name}</text>
+  <text class="nodeSub" x="${(x1+x2)/2}" y="${y+63}">${k==="inf"&&T.inf?fmt(n.busiest)+" in the busiest hour":ST[k].sub}</text>
+  ${T[k]?`<text class="zoneTxt" x="${(x1+x2)/2}" y="${y+81}" fill="${c}">${ZN[Z[k].z]}</text>`:""}</g>`;};
+ s+=pipe("inf",172,412,215,thick);
+ s+=pipe("del",588,812,215,Math.max(6,thick*(I.send==="one"?1:I.send==="small"?.7:.5)));
+ /* 24h sparkline on the influx pipe */
+ if(T.inf){const mx=Math.max(...n.H)||1;s+=`<g pointer-events="none">${n.H.map((v,h)=>`<rect x="${196+h*8}" y="${186-thick/2-26*v/mx}" width="6" height="${26*v/mx+1}" rx="1.5" fill="${h===n.peakHour?colorOf(zz("inf")):"var(--idle)"}" opacity="${h===n.peakHour?1:.6}"/>`).join("")}<text x="196" y="${186-thick/2-32}" style="font-size:10px;fill:var(--mute)">UTC 0h</text><text x="390" y="${186-thick/2-32}" text-anchor="end" style="font-size:10px;fill:var(--mute)">24h</text></g>`;}
+ {const {x,y}=ST.msg,c=colorOf(zz("msg")),sc=msgScale;s+=`<line x1="${x}" y1="${y+30}" x2="${x}" y2="${T.inf?150:195-thick/2}" stroke="var(--idle)" stroke-dasharray="3 4"/>
+  <g class="hit" data-k="msg" tabindex="0" role="button" aria-label="Message">
+  <g transform="translate(${x} ${y}) scale(${sc})"><rect class="ring" x="-30" y="-20" width="60" height="40" rx="6" fill="${bgOf(zz("msg"))}" stroke="${c}" stroke-width="3"/><path d="M-28 -17l28 20 28-20" fill="none" stroke="${c}" stroke-width="2.6" stroke-linejoin="round"/>
+  ${n.rpm>1?`<rect x="-26" y="-26" width="60" height="40" rx="6" fill="none" stroke="${c}" stroke-width="1.6" opacity=".5"/><rect x="-22" y="-32" width="60" height="40" rx="6" fill="none" stroke="${c}" stroke-width="1.2" opacity=".3"/>`:""}
+  ${I.kind==="file"?`<g transform="translate(22 6)"><rect x="-8" y="-10" width="16" height="20" rx="2" fill="var(--card)" stroke="${c}" stroke-width="2"/><path d="M-4 -3h8M-4 2h8" stroke="${c}" stroke-width="1.6"/></g>`:""}</g>
+  <text class="nodeLbl" x="${x-58*sc-8}" y="${y-2}" style="text-anchor:end;font-size:15px">${I.objName?esc(I.objName):"Message"}</text>
+  <text class="nodeSub" x="${x-58*sc-8}" y="${y+15}" style="text-anchor:end">${T.msg?CATS[I.cat].n+" · "+fmtB(n.bigB)+" biggest":"what · how big"}</text>
+  ${T.msg?`<text class="zoneTxt" x="${x+40*sc+8}" y="${y+5}" fill="${c}" style="text-anchor:start">${ZN[Z.msg.z]}</text>`:""}</g>`;}
+ ["src","mid","tgt"].forEach(k=>{const {x,y}=ST[k],z=zz(k),c=colorOf(z);
+  const nm=k==="src"?I.srcName:k==="mid"?I.midName:I.tgtName;
+  s+=`<g class="hit" data-k="${k}" tabindex="0" role="button" aria-label="${ST[k].name}">
+  <circle class="ring" cx="${x}" cy="${y}" r="58" fill="${bgOf(z)}" stroke="${c}" stroke-width="3.5"/>
+  ${k==="tgt"?`<clipPath id="tclip"><circle cx="${x}" cy="${y}" r="55"/></clipPath><rect clip-path="url(#tclip)" x="${x-58}" y="${y+55-110*Math.min(1,n.inflT/n.tcap)}" width="116" height="${110*Math.min(1,n.inflT/n.tcap)}" fill="${c}" opacity=".18"/>`:""}
+  <g transform="translate(${x} ${y-6})" class="glyph" style="stroke:${z?c:"var(--ink)"}">${GLYPH[k]}</g>
+  <text class="nodeLbl" x="${x}" y="${y+86}">${ST[k].name}</text>
+  <text class="nodeSub" x="${x}" y="${y+103}">${nm?esc(nm):ST[k].sub}</text>
+  ${T[k]?`<text class="zoneTxt" x="${x}" y="${y+121}" fill="${c}">${ZN[Z[k].z]}</text>`:`<text x="${x}" y="${y+42}" text-anchor="middle" style="font-size:11px;fill:var(--mute)">tap</text>`}
+  ${k==="src"&&I.mass==="yes"&&T.src?`<g transform="translate(${x+44} ${y-46})" class="pulse"><circle r="15" fill="var(--card)" stroke="${colorOf(Z.src.z)}" stroke-width="2"/><text y="5" text-anchor="middle" style="font-size:14px;font-weight:800;fill:${colorOf(Z.src.z)}">!</text></g>`:""}
+  </g>`;});
+ const svg=document.getElementById("svg");svg.innerHTML=s;
+ const g=document.getElementById("gearG");if(g)g.style.animationDuration=gearSpeed+"s";
+ svg.querySelectorAll(".hit").forEach(el=>{el.onclick=e=>{e.stopPropagation();openCard(el.dataset.k,el)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCard(el.dataset.k,el)}}});
+ document.getElementById("hint").style.display=Object.keys(T).length?"none":"block";
+ renderResults(Z,n);
+}
+
+/* ================= card building blocks ================= */
+const feeds=t=>`<span class="feeds">→ ${t}</span>`;
+const chips=(id,label,opts,tag,sm)=>`<div class="fld"><div class="lab"><span>${label}${tag?feeds(tag):""}</span>${sm?`<span class="sm">${sm}</span>`:""}</div><div class="chips">${opts.map(o=>`<button class="chip${String(I[id])===String(o[0])?" on":""}" data-chip="${id}" data-v="${o[0]}"${typeof o[0]==="number"?' data-n="1"':""}>${o[1]}${o[2]?`<span class="sm"> · ${o[2]}</span>`:""}</button>`).join("")}</div></div>`;
+const num=(id,label,unit,tag,extra)=>`<div class="fld numrow"><label for="n_${id}" id="lab_${id}">${label}${tag?feeds(tag):""}</label><span><input type="number" min="0" step="any" id="n_${id}" data-num="${id}" value="${I[id]}"> ${unit||""}${extra||""}</span></div>`;
+const info=(id,label,ph)=>`<div class="fld infoRow"><div class="lab"><span>${label}<span class="infoTag">for info</span></span></div><input type="text" data-txt="${id}" value="${esc(I[id])}" placeholder="${ph}"></div>`;
+const reused=items=>`<div class="reused">From other parts: ${items.map(i=>`<b>${i[0]}</b> ${i[1]}`).join(" · ")}</div>`;
+
+function cardBody(k){
+ const n=calc(view==="y3");
+ if(k==="src")return `<p class="why">Who creates the data, where in the world, the big days, and how it grows.</p>
+  ${info("srcName","Source system","e.g. CRM, web shop, MDG")}
+  ${chips("who","Who creates the data?",[["user","People in screens","business hours"],["job","Automated jobs","batch runs"],["machine","Machines or devices","around the clock"]],"daily curve, peak vs average")}
+  <div class="fld"><div class="lab"><span>Countries live at full rollout, per time-zone band${feeds("busiest hour across countries")}</span></div>
+  <table class="bandTbl">${BANDS.map(([b,l])=>`<tr><td>${l}</td><td><input type="number" min="0" data-band="${b}" value="${I.bands[b].n}"></td><td><select data-bandsize="${b}">${[["S","smaller"],["M","like the reference"],["L","larger"]].map(o=>`<option value="${o[0]}"${I.bands[b].s===o[0]?" selected":""}>${o[1]}</option>`).join("")}</select></td></tr>`).join("")}</table>
+  <div class="note">Size compared with the reference country you describe on the Influx.</div></div>
+  ${chips("dayF","The busiest day of the year is",[[1,"A normal day"],[1.5,"×1.5"],[2,"×2"],[3,"×3"],[5,"×5"]],"busiest hour","month-end, campaigns")}
+  ${chips("mass","Mass loads (mass updates, initial loads)?",[["no","No"],["yes","Yes"]],"own-road check")}
+  <div id="massBox" ${I.mass==="yes"?"":"hidden"}>${num("massRec","Records in one mass load","records")}${num("massWin","Must finish within","hours")}</div>
+  ${chips("growth","Growth in 3 years",[[1.5,"About the same"],[2,"Doubles"],[3,"×3"],[5,"×5 or more"]],"3-year view")}`;
+ if(k==="msg")return `<p class="why">What flows and how big it gets. The category decides how the volume is worked out.</p>
+  ${info("objName","Business object","e.g. Sales order, ASN, Price condition")}
+  <div class="fld"><div class="lab"><span>Category${feeds("volume formula")}</span></div><div class="cats">${Object.entries(CATS).map(([c,v])=>`<button class="chip catOpt${I.cat===c?" on":""}" data-chip="cat" data-v="${c}"><b>${v.n}</b><span class="sm"><br>${v.d}</span></button>`).join("")}</div></div>
+  ${chips("kind","One message carries",[["status","Status / event"],["doc","A document"],["file","A document with a file"]],"size")}
+  ${chips("sizeMode","Size",[["direct","I know the size"],["calc","Not sure? Let's calculate"]],"size checks")}
+  <div id="szDirect" ${I.sizeMode==="direct"?"":"hidden"}>
+   ${num("sizeVal","Normal size of one record","","",` <select data-sel="sizeUnit"><option${I.sizeUnit==="KB"?" selected":""}>KB</option><option${I.sizeUnit==="MB"?" selected":""}>MB</option></select>`)}
+   ${chips("maxF","The biggest one is",[[1,"About the same"],[10,"×10"],[100,"×100"],[1000,"×1000"]])}
+  </div>
+  <div id="szCalcBox" ${I.sizeMode==="calc"?"":"hidden"}>
+   ${chips("fmtType","Format",[["json","JSON"],["xml","XML"],["csv","CSV"],["idoc","IDoc / fixed-length"]])}
+   ${chips("struct","Structure",[["flat","One flat record"],["hdr","Header + lines"]])}
+   ${num("hdrFields",I.struct==="hdr"?"Fields in the header":"Fields in the record","")}
+   <div id="lineBox" ${I.struct==="hdr"?"":"hidden"}>${num("lineFields","Fields per line","")}${num("linesT","Lines in a normal one","")}${num("linesM","Lines in the biggest one","")}</div>
+   ${chips("valLen","Typical field value",[[6,"Short codes"],[12,"Normal"],[30,"Long texts"],[80,"Free text"]])}
+   <div id="fileBox" ${I.kind==="file"?"":"hidden"}>${num("fileKB","Attached file size","KB")}</div>
+   <div class="calcBox" id="szCalc"></div>
+  </div>
+  ${num("rpm","Records grouped in one message","","records per message")}`;
+ if(k==="inf"){const {cnt}=weights();return `<p class="why">How many, and when. Spread across time zones, countries don't all peak in the same hour.</p>
+  ${reused([["Category",CATS[I.cat].n],["Countries",cnt+" in "+BANDS.filter(([b])=>+I.bands[b].n>0).length+" band(s)"],["Curve",({user:"business hours",job:"batch runs",machine:"24 h"})[I.who]],["Busiest day","×"+I.dayF]])}
+  ${chips("know","What do you know?",[["hour","Busiest hour"],["day","Per day"],["month","Per month"],["est","Nothing yet: estimate it"]],"busiest hour")}
+  <div id="knowBox" ${I.know==="est"?"hidden":""}>
+   ${chips("scope","For",[["one","One reference country"],["all","All countries together"]])}
+   ${num("qty",({hour:"Records in the busiest hour",day:"Records per day",month:"Records per month"})[I.know]||"Records","")}
+  </div>
+  <div id="estBox" ${I.know==="est"?"":"hidden"}>
+   <div class="note">For one reference country, using the category <b>${CATS[I.cat].n}</b> (set on the Message):</div>
+   ${CATS[I.cat].q.map(q=>num(q[0],q[1],q[2])).join("")}
+  </div>
+  <div class="calcBox" id="infCalc"></div>`;}
+ if(k==="mid")return `<p class="why">How much work happens to each record on the way. Which platform does it is the next step.</p>
+  ${info("midName","Integration / flow name","e.g. Order enrichment")}
+  ${chips("work","Work per record",[["w1","Pass-through","≈ "+fmtS(S.t_w1)],["w2","Some checks","≈ "+fmtS(S.t_w2)],["w3","Heavy orchestration","≈ "+fmtS(S.t_w3)]],"messages in process at once")}`;
+ if(k==="tgt")return `<p class="why">How data is handed to the target, how much it absorbs, and how quickly it must appear.</p>
+  ${info("tgtName","Target system","e.g. S/4HANA, Salesforce")}
+  ${chips("send","Handed over as",[["one","One record per call"],["small","Small batches"],["bulk","Bulk API or file"]],"delivery fit, target speed")}
+  ${chips("absorb","How much can it take in parallel?",[["few","A few at a time","e.g. S/4"],["dozens","Dozens"],["hundreds","Hundreds","cloud service"]],"target capacity")}
+  ${chips("fresh","Must appear in the target within",[["sec","Seconds"],["min","Minutes"],["hour","The hour"],["day","Next day"]],"freshness check")}`;
+}
+
+/* ================= card behaviour ================= */
+function openCard(k,el){
+ if(k==="del"){k="tgt";el=document.querySelector('.hit[data-k="tgt"]')||el;}
+ open=k;I.touched[k]=1;if(k==="tgt")I.touched.del=1;saveIn();
+ document.querySelectorAll(".pop").forEach(p=>p.remove());
+ const pop=document.createElement("div");pop.className="pop"+(k==="msg"||k==="src"||k==="inf"?" wide":"");pop.id="pop";
+ pop.innerHTML=`<button class="x" aria-label="Close">×</button><h3>${ST[k].name}</h3>${cardBody(k)}<div id="cardVerdict"></div>`;
+ const stage=document.getElementById("stage");stage.appendChild(pop);
+ const sr=stage.getBoundingClientRect(),er=el.getBoundingClientRect(),w=pop.offsetWidth;
+ let left=er.left-sr.left+er.width/2-w/2;left=Math.max(8,Math.min(left,sr.width-w-8));
+ pop.style.left=left+"px";pop.style.top=(er.bottom-sr.top+6)+"px";
+ pop.addEventListener("click",e=>e.stopPropagation());
+ pop.querySelector(".x").onclick=closeCard;
+ pop.querySelectorAll("[data-num]").forEach(r=>r.addEventListener("input",()=>{const v=parseFloat(r.value);if(isFinite(v)&&v>=0){I[r.dataset.num]=v;update();}}));
+ pop.querySelectorAll("[data-txt]").forEach(r=>r.addEventListener("input",()=>{I[r.dataset.txt]=r.value;update();}));
+ pop.querySelectorAll("[data-sel]").forEach(r=>r.addEventListener("change",()=>{I[r.dataset.sel]=r.value;update();}));
+ pop.querySelectorAll("[data-band]").forEach(r=>r.addEventListener("input",()=>{const v=parseFloat(r.value);I.bands[r.dataset.band].n=isFinite(v)&&v>=0?v:0;update();}));
+ pop.querySelectorAll("[data-bandsize]").forEach(r=>r.addEventListener("change",()=>{I.bands[r.dataset.bandsize].s=r.value;update();}));
+ pop.querySelectorAll("[data-chip]").forEach(b=>b.onclick=()=>{const id=b.dataset.chip;I[id]=b.dataset.n?+b.dataset.v:b.dataset.v;
+  pop.querySelectorAll(`[data-chip="${id}"]`).forEach(x=>x.classList.toggle("on",x===b));
+  const show=(i,c)=>{const e=document.getElementById(i);if(e)e.hidden=!c};
+  if(id==="mass")show("massBox",I.mass==="yes");
+  if(id==="sizeMode"){show("szDirect",I.sizeMode==="direct");show("szCalcBox",I.sizeMode==="calc");}
+  if(id==="struct"){show("lineBox",I.struct==="hdr");document.getElementById("lab_hdrFields").firstChild.textContent=I.struct==="hdr"?"Fields in the header":"Fields in the record";}
+  if(id==="kind")show("fileBox",I.kind==="file");
+  if(id==="know"){reopen();return;}
+  update();});
+ update();
+}
+function reopen(){const k=open,el=document.querySelector(`.hit[data-k="${k}"]`);update();if(el)openCard(k,el);}
+function closeCard(){open=null;document.querySelectorAll(".pop").forEach(p=>p.remove());document.getElementById("stage").style.minHeight="";}
+function update(){
+ saveIn();
+ const pop=document.getElementById("pop");
+ draw();
+ if(!pop)return;
+ document.getElementById("stage").appendChild(pop);
+ const {Z,n}=evaluate(view==="y3"),z=Z[open];
+ const sc=document.getElementById("szCalc");
+ if(sc&&I.sizeMode==="calc"){const d=deriveSize();sc.innerHTML=`<b>Calculated size</b><table class="nums" style="margin-top:4px">
+  ${d.perField?`<tr><td>Per field <span class="f">${esc(d.note)}</span></td><td>${fmtB(d.perField)}</td></tr>`:`<tr><td colspan="2" class="f">${esc(d.note)}</td></tr>`}
+  <tr><td>Envelope</td><td>${fmtB(d.envB)}</td></tr><tr><td>${d.lines?"Header":"Record"}</td><td>${fmtB(d.hdrB)}</td></tr>
+  ${d.lines?`<tr><td>Per line</td><td>${fmtB(d.lineB)}</td></tr>`:""}${d.file?`<tr><td>File${I.fmtType==="json"||I.fmtType==="xml"?" (base64)":""}</td><td>${fmtB(d.file)}</td></tr>`:""}
+  <tr><td><b>Normal</b></td><td>${fmtB(d.typB)}</td></tr><tr><td><b>Biggest</b></td><td>${fmtB(d.bigB)}</td></tr></table>
+  <div class="note">Minified UTF-8. Pretty-printing adds ~30–50%.</div>`;}
+ const ic=document.getElementById("infCalc");
+ if(ic){const n0=calc(false),pk=(peakShare(I.who)*100).toFixed(0);
+  let lines=[];
+  if(I.know==="est")lines.push([`Daily, reference country`,`${CATS[I.cat].f}`,fmt(n0.dRef)]);
+  else if(n0.hourAll!=null)lines.push(["Busiest hour, all countries","entered",fmt(n0.hourAll)]);
+  else if(I.scope==="all")lines.push(["Daily, reference country",`${I.know==="month"?"month ÷ "+S.workDays+" days":"per day"} ÷ country weight`,fmt(n0.dRef)]);
+  else lines.push(["Daily, reference country",I.know==="hour"?`busiest hour ÷ ${pk}% (peak share of the curve)`:I.know==="month"?`month ÷ ${S.workDays} days`:"entered",fmt(n0.dRef)]);
+  lines.push(["Multiplying would give","one country's peak × weighted countries",fmt(n0.naive/(I.dayF||1))]);
+  lines.push(["Busiest UTC hour (normal day)",`curves summed across bands, peak at ${n0.peakHour}:00 UTC`,fmt(n0.busiest/(I.dayF||1))]);
+  if(I.dayF>1)lines.push(["Busiest day",`× ${I.dayF}`,fmt(n0.busiest)]);
+  lines.push(["Average hour","day ÷ 24",fmt(n0.avg)]);
+  ic.innerHTML=`<b>How the busiest hour is worked out${view==="y3"?" (today)":""}</b><table class="nums" style="margin-top:4px">${lines.map(l=>`<tr><td>${l[0]}<br><span class="f">${l[1]}</span></td><td>${l[2]}</td></tr>`).join("")}</table>`;}
+ document.getElementById("cardVerdict").innerHTML=`<div class="verdictBox ${z.z}"><b>${ZN[z.z]}${view==="y3"?" · in 3 years":""}</b>${z.w}${z.fix?`<div style="margin-top:3px"><b style="display:inline">Means:</b> ${z.fix}</div>`:""}</div>`;
+ setTimeout(()=>{const p=document.getElementById("pop");if(p&&getComputedStyle(p).position==="absolute")document.getElementById("stage").style.minHeight=(p.offsetTop+p.offsetHeight+16)+"px";},0);
+}
+document.addEventListener("click",e=>{if(open&&!e.target.closest(".pop")&&!e.target.closest(".hit"))closeCard();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeCard();closeSet();}});
+
+/* ================= results ================= */
+function renderResults(Z,n){
+ const T=I.touched,keys=ORDER.filter(k=>T[k]);
+ const zs=keys.map(k=>Z[k].z),nd=zs.filter(z=>z==="D").length,nw=zs.filter(z=>z==="W").length;
+ const v=!keys.length?null:nd?"D":nw?"W":"C";
+ const pill=document.getElementById("ovPill");pill.className="pill "+(v||"");pill.textContent=v?ZN[v]:"–";
+ const part=keys.length<6?` (${keys.length} of 6 parts described; the rest use defaults)`:"";
+ document.getElementById("ovText").textContent=!v?"Tap the parts of the flow to begin.":({C:"Everything sits within normal ranges.",W:nw>=2?"Several parts need deliberate design. Each is manageable; together they deserve a closer look in the platform step.":"One part needs deliberate design.",D:"At least one part is beyond what a single interface design can absorb. It needs an architecture decision."})[v]+part;
+ document.getElementById("todo").innerHTML=keys.filter(k=>Z[k].z!=="C").map(k=>`<li data-k="${k}"><span class="z ${Z[k].z}">${ZN[Z[k].z]}</span><b>${ST[k].name}:</b> ${Z[k].fix||Z[k].w}</li>`).join("")||(v?`<li class="note">Nothing flagged${view==="y3"?" in 3 years":""}. Try the 3-year view.</li>`:"");
+ document.querySelectorAll("#todo li[data-k]").forEach(li=>li.onclick=e=>{e.stopPropagation();openCard(li.dataset.k,document.querySelector(`.hit[data-k="${li.dataset.k}"]`));});
+ const t=calc(false),y=calc(true);
+ const rows=[
+  ["Busiest hour, all countries","L3",x=>fmt(x.busiest)+" /h",B.L3(t.msgs),B.L3(y.msgs)],
+  ["Average hour","L4",x=>fmt(x.avg)+" /h",B.L4(t.ratio),B.L4(y.ratio)],
+  ["Run behaviour","L5",()=>"",B.L5(I.who),B.L5(I.who)],
+  ["Biggest message","L1",x=>fmtB(x.bigB),B.L1(t.bigB),B.L1(y.bigB)],
+  ["Biggest vs normal","L2",x=>"×"+fmt(x.bigB/x.msgB),B.L2(t.bigB/t.msgB),B.L2(y.bigB/y.msgB)],
+  ["Records per message","C1",x=>fmt(x.rpm),B.C1(t.rpm),B.C1(y.rpm)],
+  ["Work per record","P1",x=>fmtS(x.secs),B.P1(I.work),B.P1(I.work)],
+  ["In process at once","",x=>fmt(x.inproc),"",""],
+  ["Freshness need","D1",()=>"",B.D1(I.fresh),B.D1(I.fresh)],
+  ["Growth","D3",x=>"×"+x.g,B.D3(I.growth),B.D3(I.growth)]];
+ if(I.mass==="yes")rows.push(["Mass load","",x=>fmt(x.massRate)+" /h",t.massRate>S.ownRoad?"own road":"",""]);
+ document.getElementById("prof").innerHTML=`<tr><th>Measure</th><th style="text-align:right">Today</th><th style="text-align:right">3 years</th><th>Band</th></tr>`+rows.map(r=>`<tr><td>${r[0]}${r[1]?` <span class="note">${r[1]}</span>`:""}</td><td>${r[2](t)}</td><td>${r[2](y)}</td><td>${r[3]?`<span class="bd">${r[3]}</span>`:""}${r[4]&&r[4]!==r[3]?` → <span class="bd">${r[4]}</span>`:""}</td></tr>`).join("");
+ window._sum=()=>{const L=[];L.push(`Interface: ${I.objName||"(unnamed)"} — ${CATS[I.cat].n}`);L.push(`Source: ${I.srcName||"–"} · Middleware: ${I.midName||"–"} · Target: ${I.tgtName||"–"}`);
+  L.push(`Result (${view==="y3"?"in 3 years":"today"}): ${v?ZN[v]:"–"}`);keys.forEach(k=>L.push(`- ${ST[k].name}: ${ZN[Z[k].z]} — ${Z[k].w}${Z[k].fix?" "+Z[k].fix:""}`));
+  L.push("Profile:");rows.forEach(r=>L.push(`- ${r[0]}: ${r[2](t)||r[3]} today, ${r[2](y)||r[4]} in 3 years${r[3]?" ["+r[3]+(r[4]&&r[4]!==r[3]?" → "+r[4]:"")+"]":""}`));return L.join("\n");};
+}
+document.getElementById("copy").onclick=async e=>{e.stopPropagation();try{await navigator.clipboard.writeText(window._sum());document.getElementById("copied").textContent="Copied";}catch(err){document.getElementById("copied").textContent="Copy not allowed here";}};
+
+/* ================= settings modal ================= */
+function openSet(){
+ const bg=document.createElement("div");bg.className="modalBg";bg.id="setBg";
+ bg.innerHTML=`<div class="modal"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Settings</h2><button class="btn" id="setClose">Done</button></div>
+ <p class="note">For architects. These values translate answers into numbers and set the breakpoints. Confidence: A = official doc, B = vendor KBA, C = secondary, E = empirical, to calibrate. Stored in this browser only. Platform limits come in the platform step.</p>
+ ${SET_DEF.map(g=>`<h4>${g.g}</h4><table>${g.items.map(([k])=>`<tr id="sr_${k}"><td>${SM[k].l}</td><td style="text-align:right"><input type="number" step="any" id="s_${k}" value="${S[k]}"></td><td class="note">${SM[k].u}</td><td class="note">default ${SM[k].d}</td><td class="conf">${SM[k].c}</td></tr>`).join("")}</table>`).join("")}
+ <div style="margin-top:12px"><button class="btn" id="setReset">Reset to defaults</button></div></div>`;
+ document.body.appendChild(bg);
+ const paint=()=>{Object.keys(S).forEach(k=>document.getElementById("sr_"+k).classList.toggle("chg",S[k]!==SM[k].d));document.getElementById("gear").classList.toggle("mod",Object.keys(S).some(k=>S[k]!==SM[k].d));};
+ Object.keys(S).forEach(k=>document.getElementById("s_"+k).addEventListener("input",e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S[k]=v;saveSet();paint();draw();}}));
+ bg.onclick=e=>{if(e.target===bg)closeSet()};
+ document.getElementById("setClose").onclick=closeSet;
+ document.getElementById("setReset").onclick=()=>{Object.keys(S).forEach(k=>{S[k]=SM[k].d;document.getElementById("s_"+k).value=S[k]});saveSet();paint();draw();};
+ paint();
+}
+function closeSet(){const b=document.getElementById("setBg");if(b)b.remove();}
+document.getElementById("gear").onclick=e=>{e.stopPropagation();closeCard();openSet();};
+document.getElementById("gear").classList.toggle("mod",Object.keys(S).some(k=>S[k]!==SM[k].d));
+
+/* ================= wiring ================= */
+document.getElementById("vNow").onclick=e=>{e.stopPropagation();view="now";vNow.classList.add("on");vY3.classList.remove("on");update()};
+document.getElementById("vY3").onclick=e=>{e.stopPropagation();view="y3";vY3.classList.add("on");vNow.classList.remove("on");update()};
+document.getElementById("ex").onclick=e=>{e.stopPropagation();closeCard();I=JSON.parse(JSON.stringify(EXAMPLE));saveIn();draw();};
+document.getElementById("clr").onclick=e=>{e.stopPropagation();closeCard();I=JSON.parse(JSON.stringify(DEF));saveIn();draw();};
+draw();
+</script>
+</body>
+</html>
