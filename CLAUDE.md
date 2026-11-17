@@ -70,7 +70,7 @@ localStorage keys: `vpc7_in` (inputs, from the 2026-11-17 build; `vpc5_in` was t
 
 ## 3b. Graphical middleware designer (branch `v7-graphical-builder`, 2026-11-17)
 
-- `main` was reset to the v6 handover commit `14a7a8d`; all work from this chat lives on `v7-graphical-builder`. The live artifact shows v6; the branch build is published to a separate preview artifact, slug `9de77e8b-020f-402f-bfef-e0e8803a8469` (https://claude.ai/artifact/LVvbzWXhsHiaA5RsJZhPz8), latest version `1794954380-771f`.
+- `main` was reset to the v6 handover commit `14a7a8d`; all work from this chat lives on `v7-graphical-builder`. The live artifact shows v6; the branch build is published to a separate preview artifact, slug `9de77e8b-020f-402f-bfef-e0e8803a8469` (https://claude.ai/artifact/LVvbzWXhsHiaA5RsJZhPz8), latest version `1794955551-d5e3`; it declares the `downloads` capability (needed by Print PDF).
 - The list builder is gone. Once all six parts are answered, the Middleware node shows **⊕ Design inside**; tapping it keeps the diagram as is and opens a pane beneath the node (dashed connector + zoom shape).
 - Step 1: add platforms left to right (repeats allowed, e.g. BTP → Solace → BTP). Step 2: add components inside each platform box, top to bottom; blocked ones are greyed with the reason (same `mdRule`).
 - Tiles are coloured by verdict; the slowest step carries a "bottleneck" tag; tapping a tile opens its settings and checks; the chain verdict and hand-off pills sit at the bottom.
@@ -217,3 +217,10 @@ What changed:
 - **D1:** inline factor boxes without spinners, sized to the value.
 
 **Next:** review the 11 corrections (Guide › Sources › "to review"; `EV_REVIEW`) with Suddha.
+
+## 3d. Fixes of 2026-11-17 night (branch `v7-graphical-builder`)
+
+- **D2 Print PDF:** inside claude.ai `window.print` is ignored, so the button captures the page (html2canvas 1.4.1 + jsPDF 2.5.1 from cdnjs, loaded on first click), cuts it into A4 pages where no row or tile is crossed, adds a footer and offers it through the artifact's `downloads` capability (`buildPdf()`, `downloadsNS()`). Opened as a local file (no `window.claude`), it falls back to the browser print dialog with the print CSS. Any artifact that serves this page must declare `{downloads:true}` first.
+- **D3 Solace queue:** may be followed by an AEM or HTTP iFlow, APIM (Azure or BTP), Service Bus, a Logic App or a Function. The delivery mode is set by the next step in `syncChain()` (`QMODE`: APIM, Service Bus, HTTP iFlow → RDP; AEM iFlow → pull; Logic App/Function → pull unless switched to RDP via `lfMode`). The queue tile shows an RDP / PULL badge.
+- **Header:** new banner (`.hero`): mark, eyebrow, title, description; Print PDF at the top right; Guide / Concepts / Settings below. Inter font from Google Fonts, cooler page background.
+- Test: `tests/test_v8.py` serves html2canvas/jsPDF from `/home/claude/work/npm/node_modules` when present (the workspace can't reach cdnjs) and mocks `window.claude`.

@@ -70,9 +70,8 @@ with sync_playwright() as p:
         assert not btn.is_disabled(), (cid, btn.get_attribute("title")); btn.click(); pg.wait_for_timeout(100)
     for k in ["btp", "sol", "az"]: plat(k)
     comp(0, "btp_http"); comp(1, "sol_topic"); comp(1, "sol_queue")
-    comp(2, "az_apim", ok=False)                       # pulled queue: no API yet
-    pg.locator('[data-mk="mode"]').select_option("rdp"); pg.wait_for_timeout(120)
     comp(2, "az_apim"); comp(2, "az_sb"); comp(2, "az_la")
+    assert "RDP" in pg.locator('[data-mdt="2"]').inner_text(), "queue shows RDP, set by the APIM after it"
     md = pg.locator("#mdPane").inner_text()
     assert "Outbound step" not in md
     pg.locator('[data-mdt="2"]').click(); pg.wait_for_timeout(100)
@@ -93,6 +92,17 @@ with sync_playwright() as p:
     assert "Evidence register" in apx and "Summary" in apx
     pg.emulate_media(media="print"); pg.screenshot(path="/tmp/print.png", full_page=True); pg.emulate_media(media="screen")
 
+    # PDF through the downloads capability (library served locally in the test)
+    NM = pathlib.Path("/home/claude/work/npm/node_modules")
+    LIBS = {"html2canvas.min.js": NM / "html2canvas/dist/html2canvas.min.js", "jspdf.umd.min.js": NM / "jspdf/dist/jspdf.umd.min.js"}
+    if all(v.exists() for v in LIBS.values()):
+        pg.route("**/cdnjs.cloudflare.com/**", lambda r: r.fulfill(path=str(LIBS[r.request.url.split("/")[-1]]), content_type="application/javascript"))
+        pg.evaluate("""()=>{window.__saved=null;window.claude={use:async n=>n==="downloads"?{save:async({filename,data})=>{window.__saved={filename,size:data.size,type:data.type};return {status:"saved"}}}:null};}""")
+        pg.locator("#printBtn").click(); pg.wait_for_function("window.__saved!==null", timeout=60000)
+        sv = pg.evaluate("window.__saved"); print("pdf saved:", sv, "|", pg.locator("#printMsg").inner_text())
+        assert sv["filename"].endswith(".pdf") and sv["size"] > 20000
+        assert pg.evaluate("document.body.classList.contains('pdfMode')") is False
+        pg.evaluate("()=>{delete window.claude}")
     # settings and guide show the evidence
     pg.locator("#gear").click(); pg.wait_for_timeout(120)
     assert "differs from evidence" in pg.locator("#setBg").inner_text()

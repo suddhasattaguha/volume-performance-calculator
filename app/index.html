@@ -105,6 +105,7 @@ a{color:var(--acc)}
 .modal tr.chg td{background:var(--adbg)}
 .conf{font-weight:800;font-size:11px;color:var(--mute)}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
 .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .cfgBtn{display:flex;align-items:center;gap:10px;padding:8px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);cursor:pointer;text-align:left}
@@ -228,8 +229,9 @@ input.need{border-color:var(--ad)!important;background:var(--adbg)!important}
 .printOnly{display:none}
 @media print{
  @page{margin:12mm}
- body{background:#fff}
- .topBtns,.stageTools,.hint,.pop,.whyBtn,.btn,.ea,.fxBtn,.mdAdd,.mdNew,.mdLink+.mdBox.mdNew,.rm,#copy,#copied,.gDrawerBg,.deckBg,.modalBg,.infoLink,.mdPick{display:none!important}
+ body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;--bg:#f4f4f0;--card:#fff;--ink:#1c1c1a;--mute:#6a6a64;--line:#e0dfd9;--acc:#3451c7;--accbg:#edf0fd;--fit:#2e8b57;--fitbg:#e2f3e6;--ad:#c27c0e;--adbg:#fbefd8;--be:#c62f26;--bebg:#fde8e6;--idle:#b9b8b1;--idlebg:#fafaf7}
+ .hero{box-shadow:none}
+ .heroNav,.heroR,.topBtns,.stageTools,.hint,.pop,.whyBtn,.btn,.ea,.fxBtn,.mdAdd,.mdNew,.mdLink+.mdBox.mdNew,.rm,#copy,#copied,.gDrawerBg,.deckBg,.modalBg,.infoLink,.mdPick{display:none!important}
  .printOnly{display:block;break-before:page}
  .pcard,.mstep,.mdDetail,.sumBox,.stage{break-inside:avoid}
  .plats{grid-template-columns:1fr 1fr}
@@ -238,6 +240,44 @@ input.need{border-color:var(--ad)!important;background:var(--adbg)!important}
  .prT{width:100%;border-collapse:collapse;font-size:10.5px}.prT td,.prT th{border-top:1px solid #ddd;padding:3px 4px;text-align:left;vertical-align:top}
  .prT a{color:#333;word-break:break-all}
 }
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#eef0f5}
+@media (prefers-color-scheme:dark){body{background:#101114}}
+main{max-width:1160px;padding:20px 18px 48px}
+.hero{display:block;background:#17213f;color:#fff;border-radius:20px;padding:22px 26px 16px;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.08)}
+.hero::after{content:"";position:absolute;inset:auto -40px -60px auto;width:260px;height:260px;border-radius:50%;background:rgba(147,168,255,.10);pointer-events:none}
+.hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#6d86ff}
+.heroTop{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;position:relative;z-index:1}
+.heroL{display:flex;gap:16px;align-items:flex-start}
+.heroMark{flex:none;width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center}
+.heroMark svg{width:30px;height:30px;fill:#9fb1ff;stroke:#fff}
+.heroEyebrow{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9fb1ff;margin-bottom:4px}
+.hero h1{font-size:26px;font-weight:800;letter-spacing:-.01em;margin:0;color:#fff}
+.hero .sub{color:rgba(255,255,255,.74);font-size:14px;max-width:640px;margin-top:6px;line-height:1.5}
+.heroR{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.printBtn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#17213f;border:0;border-radius:12px;padding:10px 16px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.printBtn svg{width:18px;height:18px}
+.printBtn:hover{background:#e9edff}
+.printBtn[disabled]{opacity:.7;cursor:progress}
+.printMsg{font-size:12px;color:rgba(255,255,255,.8);max-width:260px;text-align:right;min-height:1em}
+.heroNav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);position:relative;z-index:1}
+.heroNav .cfgBtn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:#fff;border-radius:12px;padding:7px 12px}
+.heroNav .cfgBtn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3)}
+.heroNav .cfgBtn svg{color:#9fb1ff}
+.heroNav .cfgBtn b{font-size:13px;color:#fff}
+.heroNav .cfgBtn span{color:rgba(255,255,255,.65)}
+.heroNav .cfgBtn .dot{background:#ffcf6b}
+@media(max-width:720px){.heroTop{flex-direction:column}.heroR{align-items:flex-start}.hero h1{font-size:22px}}
+.stage,.sumBox,.pcard{box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.mdMode{display:inline-block;margin-left:6px;font-size:10px;font-weight:800;letter-spacing:.04em;border-radius:5px;padding:1px 6px;background:#17213f;color:#fff;vertical-align:1px}
+.mdMode.pull{background:var(--line);color:var(--mute)}
+body.pdfMode .heroNav,body.pdfMode .heroR,body.pdfMode .stageTools,body.pdfMode .hint,body.pdfMode .pop,body.pdfMode .whyBtn,body.pdfMode .btn,body.pdfMode .ea,body.pdfMode .fxBtn,body.pdfMode .mdAdd,body.pdfMode .mdNew,body.pdfMode .rm,body.pdfMode #copy,body.pdfMode #copied,body.pdfMode .infoLink,body.pdfMode .mdPick,body.pdfMode .gDrawerBg,body.pdfMode .deckBg,body.pdfMode .modalBg{display:none!important}
+body.pdfMode .printOnly{display:block}
+body.pdfMode .mdLane{overflow:visible;flex-wrap:wrap}
+body.pdfMode,body.pdfMode main{background:#fff}
+body.pdfMode{--bg:#f4f4f0;--card:#fff;--ink:#1c1c1a;--mute:#6a6a64;--line:#e0dfd9;--acc:#3451c7;--accbg:#edf0fd;--fit:#2e8b57;--fitbg:#e2f3e6;--ad:#c27c0e;--adbg:#fbefd8;--be:#c62f26;--bebg:#fde8e6;--idle:#b9b8b1;--idlebg:#fafaf7}
+body.pdfMode #pdfWrap main{width:1100px;max-width:1100px;margin:0;padding:0}
+body.pdfMode .prSum{white-space:pre-wrap;font-size:11px;border:1px solid #ccc;padding:8px;border-radius:6px}
+body.pdfMode .prT{width:100%;border-collapse:collapse;font-size:10.5px}body.pdfMode .prT td,body.pdfMode .prT th{border-top:1px solid #ddd;padding:3px 4px;text-align:left;vertical-align:top}
 .mdSum{font-size:13.5px;margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .mdHint{cursor:pointer}
 .mdPane{margin:0 -6px;padding:0 6px 4px}
@@ -327,15 +367,20 @@ input.need{border-color:var(--ad)!important;background:var(--adbg)!important}
 </head>
 <body>
 <main>
-<div class="topbar">
- <div><h1>Volume &amp; Performance Calculator</h1><p class="sub">Describe one async interface from source to target. Tap each part, answer what you know, and see where each platform fits.</p></div>
- <div class="topBtns">
+<header class="hero">
+ <div class="heroTop">
+  <div class="heroL">
+   <div class="heroMark" aria-hidden="true"><svg viewBox="0 0 40 40"><rect x="5" y="22" width="6" height="12" rx="2"/><rect x="14" y="15" width="6" height="19" rx="2"/><rect x="23" y="9" width="6" height="25" rx="2"/><path d="M5 12c8 0 12-6 20-6h10" fill="none" stroke-width="2.6" stroke-linecap="round"/><path d="M31 2l5 4-5 4" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+   <div><div class="heroEyebrow">Interface Workload Envelope · Integration design</div><h1>Volume &amp; Performance Calculator</h1><p class="sub">Describe one asynchronous interface from source to target, see where it sits on the scale, and check it against SAP BTP, Advanced Event Mesh, Azure and Data Factory.</p></div>
+  </div>
+  <div class="heroR"><button class="printBtn" id="printBtn" aria-label="Print PDF report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>Print PDF</button><span class="printMsg" id="printMsg" role="status"></span></div>
+ </div>
+ <nav class="heroNav topBtns">
  <button class="cfgBtn" id="guideBtn" aria-label="Guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h7"/></svg><div><b>Guide</b><span>Ground rules · formulas · how to</span></div></button>
  <button class="cfgBtn" id="deckBtn" aria-label="Concepts presentation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M10 8l4 2-4 2z"/></svg><div><b>Concepts</b><span>The ideas in 15 slides</span></div></button>
- <button class="cfgBtn" id="printBtn" aria-label="Print PDF report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg><div><b>Print PDF</b><span>Report · save as PDF</span></div></button>
  <button class="cfgBtn" id="gear" aria-label="Calculation settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><div><b>Calculation settings <i class="dot"></i></b><span>Formulas · limits · boundaries</span></div></button>
- </div>
-</div>
+ </nav>
+</header>
 
 <div class="stage" id="stage">
  <div class="stageTools"><span class="runNote" id="runNote" title="Click to undo the changes made for this run">Changed for this run · reset</span><button class="btn" id="clr" title="Clear all answers">Start over</button></div>
@@ -355,9 +400,9 @@ input.need{border-color:var(--ad)!important;background:var(--adbg)!important}
  <table class="prof" id="prof"></table>
  <div style="margin-top:10px"><button class="btn" id="copy">Copy summary</button> <span class="note" id="copied"></span></div>
 </div>
+<section id="printApx" class="printOnly"></section>
 </main>
 
-<section id="printApx" class="printOnly"></section>
 <script>
 /* ================= settings (saved defaults) + run overrides ================= */
 const SET_DEF=[
@@ -1072,14 +1117,13 @@ function mdRule(id,prev,pos){
   if(pid==="az_apim"&&(id==="az_sb"||id==="az_fn"))return "";
   return pid==="az_apim"?"After Azure APIM comes an iFlow (HTTP sender), a Logic App, a Function or Service Bus.":"After an API comes an iFlow (HTTP sender) or a Logic App.";}
  if(k==="api"){
-  if(pid==="sol_queue")return prev.s.mode==="rdp"?"":"This Solace queue is pulled: switch it to RDP to push into an API.";
+  if(pid==="sol_queue")return "";
   if(id==="btp_apim"&&isIflow(pid))return "";
   return "After the entry, an API is allowed as an RDP target after a Solace queue, or as a BTP back-end facade after an iFlow.";}
  if(pid==="sol_topic")return id==="sol_queue"?"":"After a topic comes a Solace queue: Solace outbound is always a queue.";
  if(pid==="btp_jmsq")return id==="btp_jms"?"":"A JMS queue is read by an iFlow with a JMS sender.";
  if(pid==="az_sb")return id==="az_la"||id==="az_fn"?"":"Service Bus is read by a Logic App or a Function.";
- if(pid==="sol_queue"){const rdp=prev.s.mode==="rdp",ok=rdp?["btp_http","az_la","az_fn"]:["btp_aem","az_la","az_fn"];
-  return ok.includes(id)?"":rdp?"An RDP pushes over REST: to an API, an iFlow (HTTP sender), a Logic App or a Function.":"A pulled queue is read by an iFlow (AEM sender), a Logic App or a Function. Switch the queue to RDP to push to an API or an HTTP iFlow.";}
+ if(pid==="sol_queue")return ["btp_aem","btp_http","az_la","az_fn","az_sb"].includes(id)?"":"A Solace queue is read by an iFlow (AEM or HTTP sender), APIM, Service Bus, a Logic App or a Function.";
  if(pk==="proc"){
   if(id==="btp_jmsq")return pid.startsWith("btp_")?"":"Only an iFlow writes to a BTP JMS queue.";
   if(id==="sol_topic"||id==="az_sb")return "";
@@ -1184,7 +1228,7 @@ function mdSet(st,i,r){const s=st.s,sel=(k,opts)=>`<select data-mk="${k}" data-m
  ck=(k,l)=>`<label><input type="checkbox" data-mk="${k}" data-mi="${i}" ${s[k]?"checked":""}> ${l}</label>`;let h="";
  switch(st.c){
   case "sol_topic":h=`<label>Protocol ${sel("proto",[["smf","SMF"],["amqp","AMQP"],["mqtt","MQTT"],["rest","REST"]])}</label><label>Service class ${sel("cls",Object.keys(SOLC).map(k=>[k,k]))}</label>`;break;
-  case "sol_queue":h=`<label>Delivery ${sel("mode",[["pull","Pull (a consumer reads it)"],["rdp","RDP (push over REST)"]])}</label>${s.mode==="rdp"?nm("rdpConns","REST outgoing connections","",50):""}<label>Max message size <input type="number" min="0" step="any" data-mk="maxMB" data-mi="${i}" value="${s.maxMB}" placeholder="${SOLC[solCls(i)].max}"> MB</label><span class="der">${s.mode==="rdp"?"Pushed by the broker":`Consumers: ${r&&r.consumers?fmt(r.consumers)+" (from the next step)":"set by the step that reads it"}`} · class ${solCls(i)} (from the topic)</span>`;break;
+  case "sol_queue":h=`<span class="mdModeInfo">Delivery: <b>${s.mode==="rdp"?"RDP (push over REST)":"Pull (a consumer reads it)"}</b>${s.auto?` <span class="der">set by the next step (${s.auto})</span>`:""}</span>${!s.auto&&I.chain[i+1]?`<label>Delivery to ${MCOMP[I.chain[i+1].c].n} ${sel("lfMode",[["pull","Pull"],["rdp","RDP (HTTP trigger)"]])}</label>`:""}${s.mode==="rdp"?nm("rdpConns","REST outgoing connections","",50):""}<label>Max message size <input type="number" min="0" step="any" data-mk="maxMB" data-mi="${i}" value="${s.maxMB}" placeholder="${SOLC[solCls(i)].max}"> MB</label><span class="der">${s.mode==="rdp"?"Pushed by the broker":`Consumers: ${r&&r.consumers?fmt(r.consumers)+" (from the next step)":"set by the step that reads it"}`} · class ${solCls(i)} (from the topic)</span>`;break;
   case "btp_jms":case "btp_aem":h=nm("procs",st.c==="btp_jms"?"Concurrent processes":"Parallel consumers","",99)+nm("nodes","× worker nodes","")+`<span class="der">= ${fmt((+s.procs||1)*(+s.nodes||1))} consumers</span>`;break;
   case "btp_http":h=ck("single","Single worker per message");break;
   case "az_la":h=`<label>Plan ${sel("plan",[["ws1","WS1"],["ws2","WS2"],["ws3","WS3"]])}</label>${nm("inst","Instances","",100)}${nm("trig","Trigger concurrency","",100)}${nm("acts","Actions per run","")}<label>Mode ${sel("mode",[["sf","Stateful"],["sl","Stateless"]])}</label>`;break;
@@ -1199,7 +1243,10 @@ function mdSet(st,i,r){const s=st.s,sel=(k,opts)=>`<select data-mk="${k}" data-m
 const PLATC={btp:"pBtp",sol:"pSol",az:"pAz",adf:"pAdf"};
 let mdSel=null,mdPickC=null,mdPickP=false,mdHo=false;
 const mdReady=()=>allDone();
-function syncChain(){if(!Array.isArray(I.mdPlats))I.mdPlats=[];I.chain=I.mdPlats.flatMap(b=>b.comps);}
+const QMODE={az_apim:"rdp",btp_apim:"rdp",btp_http:"rdp",az_sb:"rdp",btp_aem:"pull"};
+function syncChain(){if(!Array.isArray(I.mdPlats))I.mdPlats=[];I.chain=I.mdPlats.flatMap(b=>b.comps);
+ /* a Solace queue's delivery follows the step that reads it: RDP into APIM, Service Bus or an HTTP iFlow; pull by an AEM iFlow; Logic App or Function: either (pull unless set to RDP) */
+ I.chain.forEach((st,i)=>{if(st.c!=="sol_queue")return;const nx=I.chain[i+1],auto=nx?QMODE[nx.c]:null;st.s.mode=auto||(nx&&(nx.c==="az_la"||nx.c==="az_fn")&&st.s.lfMode==="rdp"?"rdp":"pull");st.s.auto=auto?MCOMP[nx.c].n:"";});}
 /* flat index of the first component of box i, and the component just before box i's end */
 const boxStart=i=>I.mdPlats.slice(0,i).reduce((a,b)=>a+b.comps.length,0);
 function renderDesigner(c){
@@ -1221,7 +1268,7 @@ function renderDesigner(c){
   h+=`<div class="mdBox ${PLATC[b.p]}"><div class="mdBoxH"><span>${MPLAT[b.p]}</span><button class="rm" data-mdrp="${bi}" title="Remove platform">×</button></div>`;
   b.comps.forEach((st,ci)=>{const i=s0+ci,z=tileZ(i);
    if(ci>0)h+=`<div class="mdDown">↓</div>`;
-   h+=`<button class="mdTile z${z}${E.bad[i]?" bad":""}${mdSel===i?" sel":""}" data-mdt="${i}" title="${esc(E.bad[i]||"")}"><span class="tn">${i+1} · ${MCOMP[st.c].n}</span><span class="ts">${E.bad[i]?"invalid here":`${ZL[z]}${sub(i)?" · "+sub(i):""}`}</span>${tag(i)}</button>`;});
+   h+=`<button class="mdTile z${z}${E.bad[i]?" bad":""}${mdSel===i?" sel":""}" data-mdt="${i}" title="${esc(E.bad[i]||"")}"><span class="tn">${i+1} · ${MCOMP[st.c].n}${st.c==="sol_queue"&&I.chain[i+1]?`<span class="mdMode${st.s.mode==="rdp"?"":" pull"}">${st.s.mode==="rdp"?"RDP":"PULL"}</span>`:""}</span><span class="ts">${E.bad[i]?"invalid here":`${ZL[z]}${sub(i)?" · "+sub(i):""}`}</span>${tag(i)}</button>`;});
   if(mdPickC===bi){const pos=s0+b.comps.length,prev=I.chain[pos-1];
    h+=`<div class="mdPick">${Object.entries(MCOMP).filter(([,v])=>v.p===b.p).map(([id])=>{const w=mdRule(id,prev,pos);return `<button class="chip" data-mdac="${id}" data-box="${bi}" ${w?`disabled title="${esc(w)}"`:""}>${MCOMP[id].n}</button>${w?`<div class="mdWhy">${esc(w)}</div>`:""}`;}).join("")}<button class="infoLink" data-mdpc="-1">Cancel</button></div>`;}
   else h+=`<button class="mdAdd" data-mdpc="${bi}">+ component</button>`;
@@ -1277,13 +1324,43 @@ function openSet(){
 }
 function gearMark(){document.getElementById("gear").classList.toggle("mod",Object.keys(SAVED).some(k=>SAVED[k]!==SD[k])||Object.keys(RAW).some(k=>JSON.stringify(RAW[k])!==JSON.stringify(RAW_DEF[k])));}
 function closeSet(){const b=document.getElementById("setBg");if(b)b.remove();}
-document.getElementById("printBtn").onclick=e=>{e.stopPropagation();closeCard();closeSet();
- const c=calc(false),done=allDone(),ap=document.getElementById("printApx"),d=new Date();
- const ks=Object.keys(EVID).filter(k=>SM[k]);
- ap.innerHTML=`<h2>Report details</h2><p class="note">Printed ${d.toISOString().slice(0,16).replace("T"," ")} · ${done?"all inputs answered":"inputs incomplete: verdicts are not shown"}${Object.keys(OV).length?" · values changed for this run: "+Object.keys(OV).map(k=>esc(SM[k].l)+" = "+OV[k]).join("; "):""}</p>
+const PDF_LIBS=["https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js","https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"];
+const _ls={};const loadScript=u=>_ls[u]||(_ls[u]=new Promise((ok,no)=>{const t=document.createElement("script");t.src=u;t.onload=()=>ok();t.onerror=()=>{delete _ls[u];no(new Error("could not load the PDF library"));};document.head.appendChild(t);}));
+/* capture the page as it is on screen, then cut it into A4 pages at the edges of cards and sections */
+async function buildPdf(){
+ for(const u of PDF_LIBS)await loadScript(u);
+ const el=document.querySelector("main"),top=el.getBoundingClientRect().top+scrollY,SC=2;
+ const canvas=await window.html2canvas(el,{scale:SC,backgroundColor:"#ffffff",useCORS:true,logging:false});
+ const cuts=new Set([0]);el.querySelectorAll(".hero,.stage,.mdLane,.mdDetail,.mdFoot,.sumBox,.pcard,.crow,.lensH,.prof tr,#printApx h2,#printApx h3,#printApx pre,#printApx tr").forEach(n=>{const r=n.getBoundingClientRect();if(r.height>0){cuts.add(Math.round((r.top+scrollY-top)*SC));cuts.add(Math.round((r.bottom+scrollY-top)*SC));}});
+ /* never cut through a row, a tile or a table line, in any column */
+ const solid=[...el.querySelectorAll(".crow,.mdBox,.mdDetail,.hero,.legend,.lensRow,.volLine,.psub,.pcard h3,.prof tr,#printApx tr,#printApx pre,svg.flow")].map(n=>{const r=n.getBoundingClientRect();return [(r.top+scrollY-top)*SC,(r.bottom+scrollY-top)*SC];});
+ const ys=[...cuts].filter(y=>y>0&&y<canvas.height&&!solid.some(([a,b])=>y>a+1&&y<b-1)).sort((a,b)=>a-b);
+ const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"}),M=8,pw=210-2*M,ph=297-2*M-6,mmPerPx=pw/canvas.width,pageH=Math.floor(ph/mmPerPx);
+ let y=0,page=0;const stamp=new Date().toISOString().slice(0,10);
+ while(y<canvas.height){let end=Math.min(canvas.height,y+pageH);if(end<canvas.height){const c=ys.filter(v=>v>y+pageH*0.45&&v<=end);if(c.length)end=c[c.length-1];}
+  const sl=document.createElement("canvas");sl.width=canvas.width;sl.height=end-y;sl.getContext("2d").drawImage(canvas,0,y,canvas.width,end-y,0,0,canvas.width,end-y);
+  if(page)pdf.addPage();pdf.addImage(sl.toDataURL("image/jpeg",0.92),"JPEG",M,M,pw,(end-y)*mmPerPx);
+  pdf.setFontSize(8);pdf.setTextColor(120);pdf.text(`Volume & Performance Calculator · ${stamp}`,M,297-5);pdf.text(`Page ${page+1}`,210-M,297-5,{align:"right"});
+  y=end;page++;}
+ return pdf.output("blob");}
+function fillPrintApx(){const done=allDone(),ap=document.getElementById("printApx"),d=new Date(),ks=Object.keys(EVID).filter(k=>SM[k]);
+ ap.innerHTML=`<h2>Report details</h2><p class="note">Printed ${d.toISOString().slice(0,16).replace("T"," ")} UTC · ${done?"all inputs answered":"inputs incomplete: verdicts are not shown"}${Object.keys(OV).length?" · values changed for this run: "+Object.keys(OV).map(k=>esc(SM[k].l)+" = "+OV[k]).join("; "):""}</p>
   <h3>Summary</h3><pre class="prSum">${esc(window._sum?window._sum():"")}</pre>
-  <h3>Evidence register (checked ${EV_DATE})</h3><table class="prT"><tr><th>Setting</th><th>Set here</th><th>Conf.</th><th>Evidence</th><th>Source</th></tr>${ks.map(k=>{const e=EVID[k],st=evState(k);return `<tr><td>${SM[k].l}</td><td>${P[k]} ${SM[k].u}</td><td>${e.c}</td><td>${e.v==null?"—":esc(String(e.v))} · ${st.t}</td><td>${e.u?`<a href="${e.u}">${esc(e.u)}</a>`:esc(e.s)}</td></tr>`;}).join("")}</table>`;
- try{window.print();}catch(err){const m=document.getElementById("copied");if(m)m.textContent="Printing is blocked here: open the calculator in its own browser tab and print from there.";}};
+  <h3>Evidence register (checked ${EV_DATE})</h3><table class="prT"><tr><th>Setting</th><th>Set here</th><th>Conf.</th><th>Evidence</th><th>Source</th></tr>${ks.map(k=>{const e=EVID[k],st=evState(k);return `<tr><td>${SM[k].l}</td><td>${P[k]} ${SM[k].u}</td><td>${e.c}</td><td>${e.v==null?"—":esc(String(e.v))} · ${st.t}</td><td>${e.u?`<a href="${e.u}">${esc(e.u)}</a>`:esc(e.s)}</td></tr>`;}).join("")}</table>`;}
+const pmsg=t=>{const m=document.getElementById("printMsg");if(m)m.textContent=t||"";};
+async function downloadsNS(){try{if(!(window.claude&&typeof window.claude.use==="function"))return null;return await Promise.race([window.claude.use("downloads"),new Promise(r=>setTimeout(()=>r(null),4000))]);}catch(e){return null;}}
+document.getElementById("printBtn").onclick=async e=>{e.stopPropagation();closeCard();closeSet();const b=e.currentTarget;
+ fillPrintApx();
+ const dl=await downloadsNS();
+ if(!dl){pmsg("");try{window.print();}catch(err){pmsg("Printing is blocked here.");}return;}
+ b.disabled=true;pmsg("Building the PDF…");
+ const name=`Volume-Performance-${(I.objName||"interface").replace(/[^\w-]+/g,"-")}-${new Date().toISOString().slice(0,10)}.pdf`;
+ try{document.body.classList.add("pdfMode");window.scrollTo(0,0);await new Promise(r=>setTimeout(r,80));
+  const blob=await buildPdf();
+  document.body.classList.remove("pdfMode");pmsg("Confirm the download…");
+  await dl.save({filename:name,data:blob});pmsg("PDF saved.");}
+ catch(err){document.body.classList.remove("pdfMode");pmsg(err&&err.code==="declined"?"Download cancelled.":err&&err.code==="unavailable"?"Downloads aren't available in this view.":"Couldn't build the PDF: "+(err&&(err.message||err.code)||"unknown error"));}
+ finally{b.disabled=false;}};
 document.getElementById("gear").onclick=e=>{e.stopPropagation();closeCard();openSet();};
 gearMark();
 document.getElementById("clr").onclick=e=>{e.stopPropagation();closeCard();closeSet();try{localStorage.removeItem("vpc7_in")}catch(err){}RAWI=JSON.parse(JSON.stringify(DEF));mdSel=null;mdPickC=null;mdPickP=false;Object.keys(OV).forEach(k=>delete OV[k]);fxOpen={};estOv={};expB=null;draw();};
