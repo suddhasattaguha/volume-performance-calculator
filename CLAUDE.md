@@ -191,4 +191,4 @@ Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value st
 - The **benchmark** is the value set in the app (saved setting or this-run override). Wherever a limit is used (tile detail, Why, settings, Guide), show: app value · evidence value · match or "differs from evidence" · confidence · "Open source ↗".
 - No URL from memory: entries without a verified page show "no official source: measure" and the method.
 - Guide "Sources" chapter and the settings modal are generated from the register.
-- Decision for Suddha: apply the 11 corrections as new defaults, or keep current defaults and only flag the differences.
+- **Decision (Suddha, 2026-11-17):** keep the current defaults; flag each of the 11 corrections as "differs from evidence". **Review the 11 corrections after this session's build is complete.**
