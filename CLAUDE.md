@@ -225,3 +225,9 @@ What changed:
 - **Header:** new banner (`.hero`): mark, eyebrow, title, description; Print PDF at the top right; Guide / Concepts / Settings below. Inter font from Google Fonts, cooler page background.
 - Test: `tests/test_v8.py` serves html2canvas/jsPDF from `/home/claude/work/npm/node_modules` when present (the workspace can't reach cdnjs) and mocks `window.claude`.
 - **Web access:** root `index.html` redirects to `app/`; `.nojekyll` added. GitHub Pages must be switched on by Suddha (Settings → Pages → branch `v7-graphical-builder`, folder `/`), then https://suddhasattaguha.github.io/volume-performance-calculator/ opens the app. Until then: https://raw.githack.com/suddhasattaguha/volume-performance-calculator/v7-graphical-builder/app/index.html. In a normal browser tab Print PDF uses the browser print dialog (Save as PDF).
+
+## 3e. PDF report as a document (2026-11-18, branch `v7-graphical-builder`)
+
+- **D4/P11:** "Print PDF" no longer prints or screenshots the page. `buildPdf()` writes an A4 technical report with jsPDF 2.5.1 + jspdf-autotable 3.8.2 (cdnjs, loaded on first click): cover, 1 Summary (key figures, platform verdicts, chain), 2 Inputs, 3 Estimates with formulas, 4 Scale tags, 5 Workload profile, 6 Platform checks (verdict, result, calculation, limits with confidence and evidence, source links), 7 Middleware steps + step checks + hand-offs, 8 Assumptions (run overrides, settings ≠ defaults, evidence differences), 9 Evidence register; footers with page x of y. If inputs are incomplete the report lists what is missing and gives no verdicts.
+- Delivery: in claude.ai via the `downloads` capability; in a normal browser tab via a direct file download (no print dialog). The built-in PDF font is Latin-1, so `san()` writes symbols like ≤ → ≈ as <= -> ~.
+- The screenshot route (html2canvas) is gone; `@media print` CSS stays for Ctrl+P.

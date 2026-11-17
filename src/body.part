@@ -266,7 +266,7 @@ body.pdfMode .prT{width:100%;border-collapse:collapse;font-size:10.5px}body.pdfM
    <div class="heroMark" aria-hidden="true"><svg viewBox="0 0 40 40"><rect x="5" y="22" width="6" height="12" rx="2"/><rect x="14" y="15" width="6" height="19" rx="2"/><rect x="23" y="9" width="6" height="25" rx="2"/><path d="M5 12c8 0 12-6 20-6h10" fill="none" stroke-width="2.6" stroke-linecap="round"/><path d="M31 2l5 4-5 4" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
    <div><div class="heroEyebrow">Interface Workload Envelope · Integration design</div><h1>Volume &amp; Performance Calculator</h1><p class="sub">Describe one asynchronous interface from source to target, see where it sits on the scale, and check it against SAP BTP, Advanced Event Mesh, Azure and Data Factory.</p></div>
   </div>
-  <div class="heroR"><button class="printBtn" id="printBtn" aria-label="Print PDF report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>Print PDF</button><span class="printMsg" id="printMsg" role="status"></span></div>
+  <div class="heroR"><button class="printBtn" id="printBtn" aria-label="Download the PDF report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>Print PDF</button><span class="printMsg" id="printMsg" role="status"></span></div>
  </div>
  <nav class="heroNav topBtns">
  <button class="cfgBtn" id="guideBtn" aria-label="Guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h7"/></svg><div><b>Guide</b><span>Ground rules · formulas · how to</span></div></button>
@@ -1217,25 +1217,120 @@ function openSet(){
 }
 function gearMark(){document.getElementById("gear").classList.toggle("mod",Object.keys(SAVED).some(k=>SAVED[k]!==SD[k])||Object.keys(RAW).some(k=>JSON.stringify(RAW[k])!==JSON.stringify(RAW_DEF[k])));}
 function closeSet(){const b=document.getElementById("setBg");if(b)b.remove();}
-const PDF_LIBS=["https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js","https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"];
-const _ls={};const loadScript=u=>_ls[u]||(_ls[u]=new Promise((ok,no)=>{const t=document.createElement("script");t.src=u;t.onload=()=>ok();t.onerror=()=>{delete _ls[u];no(new Error("could not load the PDF library"));};document.head.appendChild(t);}));
-/* capture the page as it is on screen, then cut it into A4 pages at the edges of cards and sections */
+/* ================= PDF report (P11): a technical document built from the calculation, not a picture of the page ================= */
+const PDF_LIBS=["https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js","https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"];
+const _ls={};const loadScript=u=>_ls[u]||(_ls[u]=new Promise((ok,no)=>{const t=document.createElement("script");t.src=u;t.onload=()=>ok();t.onerror=()=>{delete _ls[u];no(new Error("could not load the PDF library (no internet?)"));};document.head.appendChild(t);}));
+/* the built-in PDF font is Latin-1: write the few symbols it lacks in plain text */
+const SANMAP={"≤":"<=","≥":">=","→":"->","←":"<-","≈":"~","≠":"!=","−":"-","–":"-","—":"-","↗":"","✓":"ok","✎":"","ƒ":"f","Σ":"sum ","ρ":"rho","λ":"lambda","μ":"mu","…":"...","‘":"'","’":"'","“":'"',"”":'"',"⊕":"+","▸":"","▾":"","•":"-","×":"x","÷":"/","·":"-"};
+const san=t=>String(t==null?"":t).replace(/[^\x00-\xFF]|[×÷·]/g,ch=>ch in SANMAP?SANMAP[ch]:"");
+const plain=t=>san(fxPlain(String(t||"")).replace(/<[^>]+>/g,""));
+const VCOL={F:[226,243,230],A:[251,239,216],B:[253,232,230],U:[226,232,240],N:[240,240,236],I:[237,240,253]};
+const ZT=z=>ZL[z]||z;
+function reportInputs(c){
+ const R=RAWI,L=(m,v)=>nz(v)?"not specified":(m[v]!=null?m[v]:String(v)),rows=[];
+ const sb=sizeBands(),vb=volBands(c.msgB);
+ const add=(card,q,a)=>rows.push([card,q,a]);
+ add("Source","Source system",R.srcName||"-");
+ add("Source","Who creates the data",L({human:"Human",app:"Application or process",jobs:"Scheduled jobs"},R.who));
+ add("Source","Countries at full rollout",nz(R.countries)?"not specified":String(R.countries)+(+R.countries>1?` (large ${+R.nL||0}, medium ${+R.nM||0}, small ${+R.nS||0})`:""));
+ add("Source","Regions",REG.filter(([k])=>R.regs[k]).map(([,l])=>l).join(", ")||"not specified");
+ add("Source","Users in scope",R.usersKnown==="yes"?fmt(+R.users||0):R.usersKnown==="no"?"estimated from references: "+(R.refs||[]).filter(r=>+r.users>0).map(r=>`${r.name||"(no name)"} ${SZN[r.size]} ${fmt(+r.users)}`).join("; "):"not specified");
+ add("Source","Growth in 3 years",L({1:"Same",2:"Doubles",3:"x3",5:"x5 or more"},R.growth));
+ if(R.who&&R.who!=="human")add("Source","Mass loads",R.mass==="yes"?`${fmt(+R.massRec||0)} records within ${+R.massWin||0} h`:L({no:"No"},R.mass));
+ add("Message","Business object",R.objName||"-");
+ add("Message","Size given as",L({known:"Picked on the scale",calc:"Calculated"},R.sizeMode));
+ if(R.sizeMode==="known"){add("Message","Normal message",nz(R.normBand)?"not specified":sb[+R.normBand]);add("Message","Biggest message",nz(R.bigBand)?"not specified":sb[+R.bigBand]);}
+ if(R.sizeMode==="calc"){add("Message","Format / structure",`${L({json:"JSON",xml:"XML",csv:"CSV",idoc:"IDoc"},R.fmtType)} / ${L({flat:"One flat record",hdr:"Header + lines"},R.struct)}`);add("Message","Fields / lines",`header ${R.hdrFields||"-"} fields${R.struct==="hdr"?`, ${R.lineFields||"-"} per line, lines normal ${R.linesT||"-"} / biggest ${R.linesM||"-"}`:""}`);}
+ if(R.att)add("Message","Attachment",nz(R.attBand)?"not specified":sb[+R.attBand]);
+ add("Message","Records per message",R.multi?String(R.rpm||"not specified"):"1");
+ add("Influx","Traffic",L({cont:"Continuous",batch:"Scheduled batch"},R.traffic)+(R.traffic==="batch"?", "+L(FREQN,R.freq):R.traffic==="cont"?", counted per "+(R.per||"-"):""));
+ if(+R.countries>1)add("Influx","Volume given for",R.globalKnown==="yes"?"all countries":R.globalKnown==="no"?`one typical ${SZN[R.typSize]||"-"} country`:"not specified");
+ add("Influx","Busiest",posN(R.busyExact)?fmt(+R.busyExact)+" (exact)":nz(R.busyBand)?"not specified":vb[+R.busyBand]);
+ add("Influx","Average",posN(R.avgExact)?fmt(+R.avgExact)+" (exact)":R.avgBand===-1||R.avgBand==="-1"?"Not known":nz(R.avgBand)?"not specified":vb[+R.avgBand]);
+ if(R.traffic==="cont"&&(R.per==="week"||R.per==="month"))add("Influx","Busiest day factor",nz(R.dayF)?"not specified":"x"+R.dayF);
+ add("Middleware","Flow name",R.midName||"-");
+ add("Middleware","Complexity",L({w1:"Simple",w2:"Medium",w3:"Complex"},R.work));
+ add("Delivery","Handed over as",L({one:"One record per call",small:"Small batches",bulk:"Bulk or file"},R.send));
+ add("Target","Target system",R.tgtName||"-");
+ add("Target","Calls at the same time",L({one:"One at a time",few:"A few",dozens:"Dozens",hundreds:"Hundreds"},R.absorb));
+ add("Target","End-to-end SLA",L({sec:"Within seconds",min:"Within minutes",hour:"Within the hour",none:"Doesn't matter"},R.sla));
+ return rows.map(r=>r.map(san));}
+function reportEstimates(c){const F=sizeFormulas(c),u=usersFinal(),rows=[];
+ if(RAWI.usersKnown==="no")rows.push(["Users in scope",fmt(u.u),u.f||""]);
+ if(multi())rows.push(["Country weight",fmt(weightTot()),`large x ${P.fL} + medium x ${P.fM} + small x ${P.fS}`]);
+ rows.push(["Normal message",fmtB(c.typ),F.typ],["Biggest message",fmtB(c.msgB),F.big+(c.rpm>1?` ; grouped = (${fmt(c.rpm)} - 1) x normal + biggest`:"")]);
+ rows.push(["Busiest hour",fmt(c.msgs)+" messages",c.fl],["Average hour",fmt(c.avg)+" messages",`average day ${fmt(c.daily)} / 24 ; peak / average = x${fmt(c.ratio)}`]);
+ if(c.rpm>1)rows.push(["Records at peak",fmt(c.recs)+" per hour",`busiest hour x ${fmt(c.rpm)} records per message`]);
+ rows.push(["In process at once",fmt(c.inproc),`busiest hour / 3600 x ${fmtS(c.secs)} (${CPX[I.work].toLowerCase()})`]);
+ if(c.massRate)rows.push(["Mass load",fmt(c.massRate)+" records/h",`${fmt(+I.massRec)} records / ${+I.massWin} h`]);
+ return rows.map(r=>r.map(plain));}
+function reportProfile(c){const B=(k,v)=>{const b=BANDS[k],i=b.i(v);return `${k} ${b.s[i][0]} (${b.s[i][1]})`;};
+ return [["Busiest hour",fmt(c.msgs)+" messages",B("L3",c.msgs)],["Peak vs average","x"+fmt(c.ratio),B("L4",c.ratio)],["Biggest message",fmtB(c.msgB),B("L1",c.msgB)],["Records per message",fmt(c.rpm),B("C1",c.rpm)],["Complexity",CPX[I.work],B("P1",0)],["In process at once",fmt(c.inproc),"-"],["End-to-end SLA",({sec:"seconds",min:"minutes",hour:"the hour",none:"none"})[I.sla],B("D1",0)],["Growth in 3 years","x"+(+I.growth||1),B("D3",+I.growth||1)]].map(r=>r.map(san));}
+const ckKeys=x=>(x.params||[]).concat(((x.formula||"").match(/\{(\w+)\}/g)||[]).map(t=>t.slice(1,-1))).filter((k,i,a)=>k&&a.indexOf(k)===i&&k in SD);
+function limitsText(x){return ckKeys(x).map(k=>{const e=EVID[k],st=e?evState(k):null;return `${SM[k].l} = ${P[k]} ${SM[k].u} [${SM[k].c}]${e?` - evidence ${e.v==null?"-":e.v} (${e.c}, ${st.t})`:""}`;}).join("\n");}
+function sourcesText(x){return ckKeys(x).filter(k=>EVID[k]&&EVID[k].u).map(k=>EVID[k].u).filter((u,i,a)=>a.indexOf(u)===i).join("\n");}
+function checkRows(list){return list.filter(x=>x.z!=="N").map(x=>{const [cl,bd]=String(x.formula||"").split("§");return [x.comp,ZT(x.z),(x.metric?x.metric+" - ":"")+x.why,plain(cl)+(bd?"\n\nBoundaries: "+plain(bd):""),san(limitsText(x)),san(sourcesText(x))].map((v,i)=>i===1?v:san(v));});}
 async function buildPdf(){
  for(const u of PDF_LIBS)await loadScript(u);
- const el=document.querySelector("main"),top=el.getBoundingClientRect().top+scrollY,SC=2;
- const canvas=await window.html2canvas(el,{scale:SC,backgroundColor:"#ffffff",useCORS:true,logging:false});
- const cuts=new Set([0]);el.querySelectorAll(".hero,.stage,.mdLane,.mdDetail,.mdFoot,.sumBox,.pcard,.crow,.lensH,.prof tr,#printApx h2,#printApx h3,#printApx pre,#printApx tr").forEach(n=>{const r=n.getBoundingClientRect();if(r.height>0){cuts.add(Math.round((r.top+scrollY-top)*SC));cuts.add(Math.round((r.bottom+scrollY-top)*SC));}});
- /* never cut through a row, a tile or a table line, in any column */
- const solid=[...el.querySelectorAll(".crow,.mdBox,.mdDetail,.hero,.legend,.lensRow,.volLine,.psub,.pcard h3,.prof tr,#printApx tr,#printApx pre,svg.flow")].map(n=>{const r=n.getBoundingClientRect();return [(r.top+scrollY-top)*SC,(r.bottom+scrollY-top)*SC];});
- const ys=[...cuts].filter(y=>y>0&&y<canvas.height&&!solid.some(([a,b])=>y>a+1&&y<b-1)).sort((a,b)=>a-b);
- const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:"mm",format:"a4",orientation:"portrait"}),M=8,pw=210-2*M,ph=297-2*M-6,mmPerPx=pw/canvas.width,pageH=Math.floor(ph/mmPerPx);
- let y=0,page=0;const stamp=new Date().toISOString().slice(0,10);
- while(y<canvas.height){let end=Math.min(canvas.height,y+pageH);if(end<canvas.height){const c=ys.filter(v=>v>y+pageH*0.45&&v<=end);if(c.length)end=c[c.length-1];}
-  const sl=document.createElement("canvas");sl.width=canvas.width;sl.height=end-y;sl.getContext("2d").drawImage(canvas,0,y,canvas.width,end-y,0,0,canvas.width,end-y);
-  if(page)pdf.addPage();pdf.addImage(sl.toDataURL("image/jpeg",0.92),"JPEG",M,M,pw,(end-y)*mmPerPx);
-  pdf.setFontSize(8);pdf.setTextColor(120);pdf.text(`Volume & Performance Calculator · ${stamp}`,M,297-5);pdf.text(`Page ${page+1}`,210-M,297-5,{align:"right"});
-  y=end;page++;}
- return pdf.output("blob");}
+ const c=calc(false),done=allDone(),PL=platforms(c);syncChain();const E=I.chain.length?mdEval(c):null;
+ const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"}),W=210,M=14,NAVY=[23,33,63],stamp=new Date().toISOString().slice(0,16).replace("T"," ");
+ const title=san(RAWI.objName||"Interface");let y=0;
+ const head=(t,sub)=>{if(y>250){doc.addPage();y=18;}doc.setFont("helvetica","bold");doc.setFontSize(13);doc.setTextColor(...NAVY);doc.text(san(t),M,y);doc.setDrawColor(109,134,255);doc.setLineWidth(0.6);doc.line(M,y+1.6,M+12,y+1.6);y+=6;
+  if(sub){doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(100);const l=doc.splitTextToSize(san(sub),W-2*M);doc.text(l,M,y);y+=l.length*4+1;}};
+ const para=t=>{doc.setFont("helvetica","normal");doc.setFontSize(9.5);doc.setTextColor(40);const l=doc.splitTextToSize(san(t),W-2*M);if(y+l.length*4.4>282){doc.addPage();y=18;}doc.text(l,M,y);y+=l.length*4.4+2;};
+ const table=(hd,body,opt)=>{doc.autoTable(Object.assign({head:[hd],body,startY:y,margin:{left:M,right:M,top:16,bottom:16},theme:"grid",styles:{font:"helvetica",fontSize:8,cellPadding:1.6,lineColor:[222,222,216],lineWidth:0.15,textColor:[30,30,30],overflow:"linebreak",valign:"top"},headStyles:{fillColor:NAVY,textColor:255,fontStyle:"bold"},alternateRowStyles:{fillColor:[250,250,247]},
+   didParseCell:d=>{if(d.section==="body"){const v=String(d.cell.raw);const z=Object.keys(ZL).find(k=>ZL[k]===v);if(z&&VCOL[z]&&opt&&opt.vcol&&opt.vcol.includes(d.column.index)){d.cell.styles.fillColor=VCOL[z];d.cell.styles.fontStyle="bold";}}}},opt||{}));y=doc.lastAutoTable.finalY+7;};
+ /* cover */
+ doc.setFillColor(...NAVY);doc.rect(0,0,W,50,"F");doc.setFillColor(109,134,255);doc.rect(0,0,3,50,"F");
+ doc.setTextColor(159,177,255);doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.text("INTERFACE WORKLOAD ENVELOPE - VOLUME & PERFORMANCE REPORT",M,15);
+ doc.setTextColor(255);doc.setFontSize(20);doc.text(title,M,27);
+ doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(220);doc.text(san(`${RAWI.srcName||"Source"} -> ${RAWI.midName||"middleware"} -> ${RAWI.tgtName||"Target"}`),M,35);
+ doc.setFontSize(8.5);doc.setTextColor(190);doc.text(san(`Generated ${stamp} UTC - ${done?"all inputs answered":"INPUTS INCOMPLETE: verdicts are not shown"}${Object.keys(OV).length?" - values changed for this run":""}`),M,43);
+ y=62;
+ /* 1 summary */
+ head("1. Summary",done?"Each platform is checked for size (does the biggest message fit?) and volume (does the busiest hour fit?).":"Not every input is answered, so no verdicts are given. Still open:");
+ if(!done){table(["Part","Still to answer"],ORDER.filter(k=>!cardDone(k)).map(k=>[ST[k].name,missing(k).join(", ")]).map(r=>r.map(san)),{});}
+ else{
+  table(["Key figure","Value"],[["Busiest hour",fmt(c.msgs)+" messages"],["Average hour",fmt(c.avg)+" messages"],["Biggest message",fmtB(c.msgB)],["Records per message",fmt(c.rpm)],["In process at once",fmt(c.inproc)],["End-to-end SLA",({sec:"within seconds",min:"within minutes",hour:"within the hour",none:"none"})[I.sla]]].map(r=>r.map(san)),{columnStyles:{0:{cellWidth:60}}});
+  const PV={F:"Fits",A:"Fits with changes",B:"Doesn't fit everywhere",U:"Not suitable",N:"Not applicable"};
+  table(["Platform","Overall","Size","Volume","Main point"],PL.map(p=>{const w=p.ch.filter(x=>x.z===p.v)[0]||p.ch.find(x=>"BUA".includes(x.z));return [p.n,PV[p.v],ZT(p.lens.size),ZT(p.lens.volume),w?`${w.comp}: ${w.why}`:"all checks fit"].map(san);}),{vcol:[2,3],columnStyles:{0:{cellWidth:42},1:{cellWidth:30},2:{cellWidth:20},3:{cellWidth:20}}});
+  if(E){const ZV={F:"Fits",A:"Fits with changes",B:"Doesn't fit",U:"Not suitable",N:"-"};
+   para(`Middleware design: ${I.chain.map((s,i)=>`${MPLAT[MCOMP[s.c].p]} ${MCOMP[s.c].n}${s.c==="sol_queue"?` (${s.s.mode==="rdp"?"RDP":"pull"})`:""}`).join(" -> ")}. Chain verdict: ${ZV[E.v]}${E.X!=null?`; throughput ~${fmt(E.X)}/h vs busiest hour ${fmt(c.msgs)}`:""}.`);}
+ }
+ /* 2 inputs */
+ head("2. Inputs","What was answered for each part of the flow.");
+ table(["Part","Question","Answer"],reportInputs(c),{columnStyles:{0:{cellWidth:26},1:{cellWidth:52}}});
+ if(done){
+  /* 3 estimates */
+  head("3. Estimates","Values the calculator derived from the inputs, with the calculation and the real numbers.");
+  table(["Value","Result","Calculation"],reportEstimates(c),{columnStyles:{0:{cellWidth:36},1:{cellWidth:30}}});
+  head("4. Scale of each part",'Scale tags (Standard / Needs attention / Critical) before any platform is chosen.');
+  table(["Part","Tag","Why"],ORDER.map(k=>{const t=tagFor(k,c);return [ST[k].name,TG[t.t],t.w].map(san);}),{columnStyles:{0:{cellWidth:26},1:{cellWidth:30}}});
+  head("5. Workload profile","One band per dimension: the interface's fingerprint.");
+  table(["Measure","Today","Band"],reportProfile(c),{columnStyles:{0:{cellWidth:50},1:{cellWidth:40}}});
+  /* 6 platform detail */
+  head("6. Platform checks in detail","Verdicts: Fit / Adapt / Beyond / Not suitable. Limits show the value used here, its confidence (A official doc, B vendor blog or benchmark, C community, E assumed) and the evidence.");
+  PL.forEach(p=>{para(`${p.n} - ${p.sub}`);table(["Check","Verdict","Result","Calculation","Limits used","Source"],checkRows(p.ch),{vcol:[1],styles:{fontSize:7,cellPadding:1.3,overflow:"linebreak",valign:"top",lineColor:[222,222,216],lineWidth:0.15},columnStyles:{0:{cellWidth:24},1:{cellWidth:15},2:{cellWidth:32},3:{cellWidth:45},4:{cellWidth:33},5:{cellWidth:33,textColor:[52,81,199]}}});});
+  /* 7 middleware */
+  if(E){head("7. Middleware design","The chain composed in the designer, step by step, then the checks across hand-offs.");
+   const setTxt=st=>Object.entries(st.s).filter(([k,v])=>!["auto","retry"].includes(k)&&v!==""&&v!=null).map(([k,v])=>`${k} ${v}`).join(", ")+(st.s.retry?", retries here":"");
+   table(["#","Platform","Component","Settings","Capacity","Verdict"],I.chain.map((st,i)=>{const r=E.res[i],d=r.drain!=null?r.drain:r.rateDrain;return [String(i+1),MPLAT[MCOMP[st.c].p],MCOMP[st.c].n+(st.c==="sol_queue"?` (${st.s.mode==="rdp"?"RDP":"pull"})`:""),setTxt(st),d!=null?`~${fmt(d)}/h, ${fmt(c.R/d*100)}% used`:"rate unknown",E.bad[i]?"Beyond":ZT(worstZ(r.rows))].map(san);}),{vcol:[5],columnStyles:{0:{cellWidth:7},1:{cellWidth:24},2:{cellWidth:34},4:{cellWidth:32},5:{cellWidth:20}}});
+   I.chain.forEach((st,i)=>{const rows=checkRows(E.res[i].rows);if(rows.length){para(`Step ${i+1}: ${MPLAT[MCOMP[st.c].p]} - ${MCOMP[st.c].n}${E.bad[i]?" - invalid here: "+E.bad[i]:""}`);table(["Check","Verdict","Result","Calculation","Limits used","Source"],rows,{vcol:[1],styles:{fontSize:7,cellPadding:1.3,overflow:"linebreak",valign:"top",lineColor:[222,222,216],lineWidth:0.15},columnStyles:{0:{cellWidth:24},1:{cellWidth:15},2:{cellWidth:32},3:{cellWidth:45},4:{cellWidth:33},5:{cellWidth:33,textColor:[52,81,199]}}});}});
+   para("Hand-off checks across the chain");
+   table(["Check","Verdict","Result","Calculation","Limits used","Source"],checkRows(E.ho),{vcol:[1],styles:{fontSize:7,cellPadding:1.3,overflow:"linebreak",valign:"top",lineColor:[222,222,216],lineWidth:0.15},columnStyles:{0:{cellWidth:24},1:{cellWidth:15},2:{cellWidth:32},3:{cellWidth:45},4:{cellWidth:33},5:{cellWidth:33,textColor:[52,81,199]}}});}
+ }
+ /* 8 assumptions */
+ head("8. Assumptions and open points","Values changed for this run, settings that differ from their defaults, and evidence differences kept for review.");
+ const asm=[];Object.keys(OV).forEach(k=>asm.push(["Changed for this run",SM[k].l,`${OV[k]} ${SM[k].u} (saved ${SAVED[k]})`]));
+ Object.keys(SAVED).forEach(k=>{if(SAVED[k]!==SD[k])asm.push(["Setting differs from default",SM[k].l,`${SAVED[k]} ${SM[k].u} (default ${SD[k]})`]);});
+ EV_REVIEW.forEach(r=>asm.push(["Evidence differs (to review)",r[0],`app: ${r[1]} - evidence: ${r[2]}`]));
+ table(["Type","Item","Detail"],asm.map(r=>r.map(san)),{columnStyles:{0:{cellWidth:42},1:{cellWidth:55}}});
+ /* 9 evidence */
+ head("9. Evidence register",`Best available evidence per limit, checked ${EV_DATE}. The value set in the app is the benchmark.`);
+ table(["Setting","Set here","Conf.","Evidence","Where / source"],Object.keys(EVID).filter(k=>SM[k]).map(k=>{const e=EVID[k],st=evState(k);return [SM[k].l,`${P[k]} ${SM[k].u}`,e.c,`${e.v==null?"-":e.v} (${st.t})`,e.s+(e.u?"\n"+e.u:"")].map(san);}),{columnStyles:{0:{cellWidth:46},1:{cellWidth:22},2:{cellWidth:11},3:{cellWidth:30},4:{textColor:[60,60,60]}}});
+ /* footers */
+ const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(130);doc.text(san(`Volume & Performance Calculator - ${title} - ${stamp} UTC`),M,290);doc.text(`Page ${i} of ${n}`,W-M,290,{align:"right"});}
+ return doc.output("blob");}
 function fillPrintApx(){const done=allDone(),ap=document.getElementById("printApx"),d=new Date(),ks=Object.keys(EVID).filter(k=>SM[k]);
  ap.innerHTML=`<h2>Report details</h2><p class="note">Printed ${d.toISOString().slice(0,16).replace("T"," ")} UTC · ${done?"all inputs answered":"inputs incomplete: verdicts are not shown"}${Object.keys(OV).length?" · values changed for this run: "+Object.keys(OV).map(k=>esc(SM[k].l)+" = "+OV[k]).join("; "):""}</p>
   <h3>Summary</h3><pre class="prSum">${esc(window._sum?window._sum():"")}</pre>
@@ -1243,16 +1338,13 @@ function fillPrintApx(){const done=allDone(),ap=document.getElementById("printAp
 const pmsg=t=>{const m=document.getElementById("printMsg");if(m)m.textContent=t||"";};
 async function downloadsNS(){try{if(!(window.claude&&typeof window.claude.use==="function"))return null;return await Promise.race([window.claude.use("downloads"),new Promise(r=>setTimeout(()=>r(null),4000))]);}catch(e){return null;}}
 document.getElementById("printBtn").onclick=async e=>{e.stopPropagation();closeCard();closeSet();const b=e.currentTarget;
- fillPrintApx();
- const dl=await downloadsNS();
- if(!dl){pmsg("");try{window.print();}catch(err){pmsg("Printing is blocked here.");}return;}
- b.disabled=true;pmsg("Building the PDF…");
- const name=`Volume-Performance-${(I.objName||"interface").replace(/[^\w-]+/g,"-")}-${new Date().toISOString().slice(0,10)}.pdf`;
- try{document.body.classList.add("pdfMode");window.scrollTo(0,0);await new Promise(r=>setTimeout(r,80));
-  const blob=await buildPdf();
-  document.body.classList.remove("pdfMode");pmsg("Confirm the download…");
-  await dl.save({filename:name,data:blob});pmsg("PDF saved.");}
- catch(err){document.body.classList.remove("pdfMode");pmsg(err&&err.code==="declined"?"Download cancelled.":err&&err.code==="unavailable"?"Downloads aren't available in this view.":"Couldn't build the PDF: "+(err&&(err.message||err.code)||"unknown error"));}
+ b.disabled=true;pmsg("Building the report…");
+ const name=`Volume-Performance-Report-${(RAWI.objName||"interface").replace(/[^\w-]+/g,"-")}-${new Date().toISOString().slice(0,10)}.pdf`;
+ try{const blob=await buildPdf(),dl=await downloadsNS();
+  if(dl){pmsg("Confirm the download…");await dl.save({filename:name,data:blob});}
+  else{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);}
+  pmsg("Report saved: "+name);}
+ catch(err){pmsg(err&&err.code==="declined"?"Download cancelled.":"Couldn't build the report: "+(err&&(err.message||err.code)||"unknown error"));}
  finally{b.disabled=false;}};
 document.getElementById("gear").onclick=e=>{e.stopPropagation();closeCard();openSet();};
 gearMark();

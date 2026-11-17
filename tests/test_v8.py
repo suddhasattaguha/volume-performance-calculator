@@ -8,7 +8,7 @@ errs = []
 
 with sync_playwright() as p:
     b = p.chromium.launch()
-    pg = b.new_page(viewport={"width": 1300, "height": 1000})
+    pg = b.new_page(viewport={"width": 1300, "height": 1000}, accept_downloads=True)
     pg.on("pageerror", lambda e: errs.append(str(e)))
     pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
     pg.goto(URL); pg.evaluate("localStorage.clear()"); pg.reload(); pg.wait_for_timeout(300)
@@ -84,25 +84,20 @@ with sync_playwright() as p:
         after:mdRule('az_sb',I.chain[2],3), lalasb:mdRule('az_sb',{c:'az_la',s:{}},2)}}""")
     print("facade rule:", r); assert not any(r["bad"]) and not r["out"] and r["after"] and r["lalasb"] == ""
 
-    # print report
-    pg.evaluate("()=>{window.__printed=0;window.print=()=>{window.__printed++};}")
-    pg.locator("#printBtn").click(); pg.wait_for_timeout(150)
-    assert pg.evaluate("window.__printed") == 1
-    apx = pg.locator("#printApx").inner_text()
-    assert "Evidence register" in apx and "Summary" in apx
-    pg.emulate_media(media="print"); pg.screenshot(path="/tmp/print.png", full_page=True); pg.emulate_media(media="screen")
-
     # PDF through the downloads capability (library served locally in the test)
     NM = pathlib.Path("/home/claude/work/npm/node_modules")
-    LIBS = {"html2canvas.min.js": NM / "html2canvas/dist/html2canvas.min.js", "jspdf.umd.min.js": NM / "jspdf/dist/jspdf.umd.min.js"}
+    LIBS = {"jspdf.umd.min.js": NM / "jspdf/dist/jspdf.umd.min.js", "jspdf.plugin.autotable.min.js": NM / "jspdf-autotable/dist/jspdf.plugin.autotable.min.js"}
     if all(v.exists() for v in LIBS.values()):
         pg.route("**/cdnjs.cloudflare.com/**", lambda r: r.fulfill(path=str(LIBS[r.request.url.split("/")[-1]]), content_type="application/javascript"))
         pg.evaluate("""()=>{window.__saved=null;window.claude={use:async n=>n==="downloads"?{save:async({filename,data})=>{window.__saved={filename,size:data.size,type:data.type};return {status:"saved"}}}:null};}""")
         pg.locator("#printBtn").click(); pg.wait_for_function("window.__saved!==null", timeout=60000)
         sv = pg.evaluate("window.__saved"); print("pdf saved:", sv, "|", pg.locator("#printMsg").inner_text())
         assert sv["filename"].endswith(".pdf") and sv["size"] > 20000
-        assert pg.evaluate("document.body.classList.contains('pdfMode')") is False
         pg.evaluate("()=>{delete window.claude}")
+        with pg.expect_download() as dl:                       # plain browser tab: direct download, no print dialog
+            pg.locator("#printBtn").click()
+        print("browser download:", dl.value.suggested_filename)
+        assert dl.value.suggested_filename.endswith(".pdf")
     # settings and guide show the evidence
     pg.locator("#gear").click(); pg.wait_for_timeout(120)
     assert "differs from evidence" in pg.locator("#setBg").inner_text()
