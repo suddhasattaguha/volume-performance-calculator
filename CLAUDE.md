@@ -57,7 +57,7 @@ Handover written 2026-11-17, updated after v7 was published.
 - `valBox()` / `sizeFormulas()`: card values with the formula directly under them
 - Builder: `SOLC` (Solace classes), `MCOMP` (catalogue), `mdRule()` (positional rules), `mdEval()` (steps + hand-offs), `mdSet()` (per-step settings), `renderChain()`; state `I.chain`, `I.mdOpen`
 
-localStorage keys: `vpc5_in`, `vpc_set`, `vpc_curves`.
+localStorage keys: `vpc7_in` (inputs, from the 2026-11-17 build; `vpc5_in` was the older key), `vpc_set`, `vpc_curves`.
 
 ## 3a. v7 (built 2026-11-17)
 
@@ -66,7 +66,7 @@ localStorage keys: `vpc5_in`, `vpc_set`, `vpc_curves`.
 - **Not suitable** (slate): ADF continuous + tight SLA, stateless Logic App over 5 min, batch SLA in seconds, one-per-call for big sets. Only the decisive row (ADF traffic shape) sets a platform verdict to Not suitable.
 - **Sizes** ≥ 1,000 B show as KB. **Formulas** sit under each value with inline factors; boundaries are a separate section (cards: "Boundaries for the tag"; Why: Calculation / Boundaries / Other factors).
 - **Middleware design builder** (section after the platform evaluation): "+ Add step", platform then component, blocked choices greyed with the reason. Interpretations made in the build: a Solace topic or an ADF pipeline may start a chain; ADF may end it; queue consumers come from the next step (not asked twice); each processing step says "does the work" or "thin hand-off"; "Retries here" on retry-capable steps. HTTP sender flag: on = the whole message on one worker (memory check on the whole message), off = per record.
-- Test with `python3 tests/test_app.py` and `python3 tests/test_designer.py` (Playwright): click SVG parts with `dispatch_event('click')`.
+- Test with `python3 tests/test_v8.py` (Playwright; answers every input through the UI): click SVG parts with `dispatch_event('click')`. The older test_app/test_designer were removed: they relied on input defaults.
 
 ## 3b. Graphical middleware designer (branch `v7-graphical-builder`, 2026-11-17)
 
@@ -177,7 +177,7 @@ Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value st
 - A volume estimator from business questions using CPG norms.
 - The research suggests replacing the country weights with a volume driver per country (users, orders). Not yet discussed with Suddha.
 
-## 6. Collected points (since 2026-11-17 22:49; plan only, build on "build")
+## 6. Collected points D1, P2–P10 — BUILT 2026-11-17 (see 3c)
 
 - **D1** Inline factor boxes look empty (only the confidence letter shows): Chrome number spinners eat the width. Hide spinners, size to the value, letter after the box.
 - **P2** Allow Solace queue → Azure APIM (RDP) → Service Bus → Logic App / Function.
@@ -191,9 +191,29 @@ Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value st
 - **P8** No defaults in the inputs. Every chip question starts unselected and every number field starts empty, shown as "not specified" and highlighted until answered. Answers may be a value, a range, "not known" (where offered) or an accepted estimate. (Settings keep their defaults: they are calculation factors, not inputs.)
 - **P9** No platform verdicts until every required input is answered. Before that, the evaluation shows what is still missing (per card), not results. The middleware designer gate uses the same "complete" rule, not just "card opened".
 
+- **P10** "Print PDF" button: browser print dialog (save as PDF) with a print layout and a report appendix (summary + evidence register).
+
 ### P6 plan: evidence register vs the app's benchmark
 - One register entry per settings key (and per class-table value): evidence value, confidence, primary URL + section, short snippet, date checked, status (confirmed · corrected · unverified · design choice).
 - The **benchmark** is the value set in the app (saved setting or this-run override). Wherever a limit is used (tile detail, Why, settings, Guide), show: app value · evidence value · match or "differs from evidence" · confidence · "Open source ↗".
 - No URL from memory: entries without a verified page show "no official source: measure" and the method.
 - Guide "Sources" chapter and the settings modal are generated from the register.
 - **Decision (Suddha, 2026-11-17):** keep the current defaults; flag each of the 11 corrections as "differs from evidence". **Review the 11 corrections after this session's build is complete.**
+
+## 3c. Build of 2026-11-17 late evening (branch `v7-graphical-builder`)
+
+Built D1, P2–P10. Readings taken for open questions (confirm with Suddha):
+- A chain may end with a BTP API only when it follows an iFlow (back-end facade); nothing may follow that API.
+- RDP (queue delivery = RDP) can push to an API (Azure or BTP), an iFlow HTTP sender, a Logic App or a Function. Pull queues are read by an AEM-sender iFlow, a Logic App or a Function.
+- "Not known" only where it already made sense (average volume). Settings keep defaults.
+
+What changed:
+- **Inputs (P8):** `RAWI` holds the raw answers (all empty at start); `I` is a proxy that returns neutral fallbacks (`FB`) only for drawing. Inputs read raw; unanswered fields are highlighted ("not specified"). Regions is always asked.
+- **Gate (P9):** `missing(k)` / `cardDone(k)` / `allDone()`. Card tags, card estimates, platform verdicts, the workload profile, the copy/print summary and "Design inside" appear only when complete; before that a "still to answer" list links to each card.
+- **Bands (P7):** `scopeK()` = size factor ÷ total country weight for a typical-country volume; `peakShareScope()` uses the combined region curve for a global volume. The Influx card shows the scale note and global equivalents.
+- **Builder (P2–P5):** new `mdRule`; queue `mode` pull/rdp with `rdpConns`; RDP rate = connections ÷ response time (next step's time, else setting `rdpRtt` 0.5 s, E); class REST outgoing connections check; JMS per-message row now cites the 1,280 MB evidence.
+- **Evidence (P6):** `EVID` / `EVU` / `EV_REVIEW`; `evState()` compares the app value (benchmark) with the evidence; `↗` link and `≠` mark on inline factors; a "Sources" block in every Why and in card boundaries; evidence column in settings; register + "to review" list in Guide › Sources.
+- **Print (P10):** `#printBtn`, `#printApx`, `@media print`.
+- **D1:** inline factor boxes without spinners, sized to the value.
+
+**Next:** review the 11 corrections (Guide › Sources › "to review"; `EV_REVIEW`) with Suddha.
