@@ -130,6 +130,7 @@
 .mdTile.bad{border-style:dashed}
 .mdTile.sel{outline:2.5px solid var(--acc);outline-offset:1px}
 .mdTag{position:absolute;top:-8px;right:6px;font-size:10px;font-weight:800;background:var(--be);color:#fff;border-radius:999px;padding:1px 7px}
+.mdTag.slow{background:var(--card);color:var(--mute);border:1px solid var(--line)}
 .mdAdd{border:1.5px dashed var(--line);background:transparent;color:var(--acc);font-weight:700;font-size:12.5px;border-radius:10px;padding:6px;cursor:pointer;margin-top:6px}
 .mdAdd.big{font-size:14px;padding:16px 8px;margin:0;border:0}
 .mdAdd:hover{border-color:var(--acc)}
@@ -896,7 +897,8 @@ function mdEval(c){
  /* bottleneck: the slowest step */
  const dr=res.map((r,i)=>[r.drain!=null?r.drain:r.rateDrain,i]).filter(x=>x[0]!=null&&isFinite(x[0]));let X=null,bi=null;
  if(dr.length){const [mn,mi]=dr.reduce((a,b)=>b[0]<a[0]?b:a);X=mn;bi=mi;const z=c.R<=mn*P.comfort/100?"F":c.R<=mn||c.avg<=mn?"A":"B";
-  ho.push(CK("Bottleneck step",z,`step ${mi+1} (${MCOMP[ch[mi].c].n}) handles ~${fmt(mn)}/h vs busiest hour ${fmt(c.R)}`,z==="F"?"the chain keeps up at peak":z==="A"?(c.R<=mn?"close to the chain's limit at peak":"a queue in front of it must hold the peak"):"the chain can't keep up even with the average",`chain throughput = min over steps: ${dr.map(([d,i])=>`${i+1}: ${fmt(d)}`).join(" · ")} per hour = ${fmt(mn)}§Fit ≤ {comfort}% · Adapt ≤ 100%, or average ${fmt(c.avg)}/h ≤ chain throughput · Beyond otherwise`,["comfort"],"volume"));}
+  const unk=res.map((r,i)=>r.drain==null&&r.rateDrain==null&&ch[i].c!=="adf_pipe"?i+1:null).filter(Boolean);
+  ho.push(CK(z==="F"?"Slowest step":"Bottleneck step",z,`step ${mi+1} (${MCOMP[ch[mi].c].n}) handles ~${fmt(mn)}/h vs busiest hour ${fmt(c.R)}${unk.length?` · not counted, rate unknown: step${unk.length>1?"s":""} ${unk.join(", ")}`:""}`,z==="F"?"the chain keeps up at peak":z==="A"?(c.R<=mn?"close to the chain's limit at peak":"a queue in front of it must hold the peak"):"the chain can't keep up even with the average",`${unk.length?`steps without a known rate (${unk.join(", ")}) are left out: measure them\n`:""}chain throughput = min over steps: ${dr.map(([d,i])=>`${i+1}: ${fmt(d)}`).join(" · ")} per hour = ${fmt(mn)}§Fit ≤ {comfort}% · Adapt ≤ 100%, or average ${fmt(c.avg)}/h ≤ chain throughput · Beyond otherwise\n"bottleneck" is shown only when the slowest step is Adapt or Beyond; otherwise it is just the slowest step`,["comfort"],"volume"));}
  /* end-to-end SLA: step times + queue waits */
  if(n){const ts=res.reduce((a,r)=>a+r.t,0),wq=res.reduce((a,r)=>a+r.waitMin,0),tot=ts/60+wq,lim={sec:0.1,min:P.slaMin,hour:P.slaHour,none:Infinity}[I.sla];
   const hasB=ch.some(s=>s.c==="adf_pipe");
@@ -939,7 +941,10 @@ function renderDesigner(c){
  pane.hidden=false;
  const B=I.mdPlats,E=mdEval(c),x=ST.mid.x,n=I.chain.length;
  const tileZ=i=>E.bad[i]?"B":worstZ(E.res[i].rows);
- const sub=i=>{const r=E.res[i];if(r.drain!=null)return `handles ~${fmt(r.drain)}/h`;if(r.rateDrain!=null)return `~${fmt(r.rateDrain)}/h`;if(r.waitMin)return `wait ~${fmt(r.waitMin)} min`;if(r.capMB!=null)return `up to ${fmt(r.capMB)} MB`;return "";};
+ const cap=i=>{const r=E.res[i];return r.drain!=null?r.drain:r.rateDrain!=null?r.rateDrain:null;};
+ const sub=i=>{const d=cap(i),r=E.res[i];if(d!=null)return `~${fmt(d)}/h · ${fmt(c.R/d*100)}% used`;if(I.chain[i].c==="adf_pipe")return "batch path, no message rate";return `rate unknown${r.waitMin?` · wait ~${fmt(r.waitMin)} min`:""}${r.capMB!=null?` · up to ${fmt(r.capMB)} MB`:""}`;};
+ const measured=I.chain.map((_,i)=>cap(i)).filter(d=>d!=null).length;
+ const tag=i=>{if(E.bi!==i)return "";const vz=worstZ(E.res[i].rows.filter(x=>x.lens==="volume"));return vz==="A"||vz==="B"?`<span class="mdTag">bottleneck</span>`:measured>1?`<span class="mdTag slow">slowest step</span>`:"";};
  const step=!B.length?`<b>Step 1</b> · Add the platforms in the order the message passes them, left to right.`:!n?`<b>Step 2</b> · Add the components inside each platform, top to bottom.`:`Tap a component to see its checks and settings. Colour = verdict.`;
  let h=`<svg class="mdZoom" viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true"><polygon points="${x-20},0 ${x+20},0 994,40 6,40"/></svg>
  <div class="mdCanvas"><div class="mdHead"><div><b>Middleware design</b> <span class="note">${step}</span></div><button class="btn" id="mdClose">Close</button></div>
@@ -949,7 +954,7 @@ function renderDesigner(c){
   h+=`<div class="mdBox ${PLATC[b.p]}"><div class="mdBoxH"><span>${MPLAT[b.p]}</span><button class="rm" data-mdrp="${bi}" title="Remove platform">×</button></div>`;
   b.comps.forEach((st,ci)=>{const i=s0+ci,z=tileZ(i);
    if(ci>0)h+=`<div class="mdDown">↓</div>`;
-   h+=`<button class="mdTile z${z}${E.bad[i]?" bad":""}${mdSel===i?" sel":""}" data-mdt="${i}" title="${esc(E.bad[i]||"")}"><span class="tn">${i+1} · ${MCOMP[st.c].n}</span><span class="ts">${E.bad[i]?"invalid here":`${ZL[z]}${sub(i)?" · "+sub(i):""}`}</span>${E.bi===i?`<span class="mdTag">bottleneck</span>`:""}</button>`;});
+   h+=`<button class="mdTile z${z}${E.bad[i]?" bad":""}${mdSel===i?" sel":""}" data-mdt="${i}" title="${esc(E.bad[i]||"")}"><span class="tn">${i+1} · ${MCOMP[st.c].n}</span><span class="ts">${E.bad[i]?"invalid here":`${ZL[z]}${sub(i)?" · "+sub(i):""}`}</span>${tag(i)}</button>`;});
   if(mdPickC===bi){const pos=s0+b.comps.length,prev=I.chain[pos-1];
    h+=`<div class="mdPick">${Object.entries(MCOMP).filter(([,v])=>v.p===b.p).map(([id])=>{const w=mdRule(id,prev,pos);return `<button class="chip" data-mdac="${id}" data-box="${bi}" ${w?`disabled title="${esc(w)}"`:""}>${MCOMP[id].n}</button>${w?`<div class="mdWhy">${esc(w)}</div>`:""}`;}).join("")}<button class="infoLink" data-mdpc="-1">Cancel</button></div>`;}
   else h+=`<button class="mdAdd" data-mdpc="${bi}">+ component</button>`;
@@ -963,7 +968,7 @@ function renderDesigner(c){
   h+=`<div class="mdDetail"><div class="mdBoxH"><span>Step ${i+1} · ${MPLAT[C.p]} · ${C.n}</span><span><button class="infoLink" data-mdrc="${i}">Remove</button> <button class="rm" id="mdSelX" title="Close">×</button></span></div>${E.bad[i]?`<div class="badTxt">Invalid here: ${E.bad[i]}</div>`:""}${mdSet(st,i,r)}${sec("size","Size")}${sec("volume","Volume")}</div>`;}
  /* chain summary */
  if(n){const ZV={F:"Fits",A:"Fits with changes",B:"Doesn't fit",U:"Not suitable",N:"–"};
-  h+=`<div class="mdFoot"><span><b>Chain</b> <span class="zc ${E.v}">${ZV[E.v]}</span>${E.X!=null?` <span class="note">throughput ~${fmt(E.X)}/h vs busiest hour ${fmt(c.msgs)}</span>`:""}</span><span class="mdPills">${E.ho.map(o=>`<span class="zc ${o.z}">${esc(o.comp)}</span>`).join("")}</span><button class="infoLink" id="mdHoT">${mdHo?"▾ Hide hand-off checks":"▸ Hand-off checks"}</button></div>`;
+  h+=`<div class="mdFoot"><span><b>Chain</b> <span class="zc ${E.v}">${ZV[E.v]}</span>${E.X!=null?` <span class="note">throughput ~${fmt(E.X)}/h vs busiest hour ${fmt(c.msgs)} (steps with a known rate only)</span>`:""}</span><span class="mdPills">${E.ho.map(o=>`<span class="zc ${o.z}">${esc(o.comp)}</span>`).join("")}</span><button class="infoLink" id="mdHoT">${mdHo?"▾ Hide hand-off checks":"▸ Hand-off checks"}</button></div>`;
   if(mdHo)h+=`<div class="mdHoRows">${E.ho.map((o,j)=>compRow(o,null,`mh${j}`)).join("")}</div>`;}
  h+=`</div>`;
  pane.innerHTML=h;
