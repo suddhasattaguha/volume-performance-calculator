@@ -176,3 +176,19 @@ Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value st
 - The target capacity question ("how many at a time"): revisit who can answer it.
 - A volume estimator from business questions using CPG norms.
 - The research suggests replacing the country weights with a volume driver per country (users, orders). Not yet discussed with Suddha.
+
+## 6. Collected points (since 2026-11-17 22:49; plan only, build on "build")
+
+- **D1** Inline factor boxes look empty (only the confidence letter shows): Chrome number spinners eat the width. Hide spinners, size to the value, letter after the box.
+- **P2** Allow Solace queue → Azure APIM (RDP) → Service Bus → Logic App / Function.
+- **P3** Logic App → Service Bus → Logic App repeats (already allowed; keep tested).
+- **P4** BTP: API → iFlow → API (back-end facade). Open: may a chain end with an API?
+- **P5** Solace queue delivery mode: RDP (push over REST; assess REST outgoing connections ÷ next step's response time, E, vs class REST/RDP limits) or pull (AEM adapter / consumer: consumers × nodes). Open: may RDP push to an iFlow HTTP sender as well as APIM?
+- **P6** Source link on every fact: evidence register (plan below). Research saved in `docs/source-references.md`.
+
+### P6 plan: evidence register vs the app's benchmark
+- One register entry per settings key (and per class-table value): evidence value, confidence, primary URL + section, short snippet, date checked, status (confirmed · corrected · unverified · design choice).
+- The **benchmark** is the value set in the app (saved setting or this-run override). Wherever a limit is used (tile detail, Why, settings, Guide), show: app value · evidence value · match or "differs from evidence" · confidence · "Open source ↗".
+- No URL from memory: entries without a verified page show "no official source: measure" and the method.
+- Guide "Sources" chapter and the settings modal are generated from the register.
+- Decision for Suddha: apply the 11 corrections as new defaults, or keep current defaults and only flag the differences.
