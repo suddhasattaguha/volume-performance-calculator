@@ -188,6 +188,9 @@ Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value st
 
 - **P7** Influx bands must follow the scope set on the Source. Today the band edges (e.g. under 5k) are the same whether the number is global or for one typical country. Planned: when the volume is for one typical country, scale the edges by that country's share of the global weight (edge_country = edge_global × size factor ÷ total country weight), so "under 5k" for a small country in a 40-country rollout becomes a much smaller band. Show both: the country band and its ≈ global equivalent. Also (confirmed by Suddha): the day→hour conversion of the edges uses the combined multi-region curve (lower peak share), not one region's curve.
 
+- **P8** No defaults in the inputs. Every chip question starts unselected and every number field starts empty, shown as "not specified" and highlighted until answered. Answers may be a value, a range, "not known" (where offered) or an accepted estimate. (Settings keep their defaults: they are calculation factors, not inputs.)
+- **P9** No platform verdicts until every required input is answered. Before that, the evaluation shows what is still missing (per card), not results. The middleware designer gate uses the same "complete" rule, not just "card opened".
+
 ### P6 plan: evidence register vs the app's benchmark
 - One register entry per settings key (and per class-table value): evidence value, confidence, primary URL + section, short snippet, date checked, status (confirmed · corrected · unverified · design choice).
 - The **benchmark** is the value set in the app (saved setting or this-run override). Wherever a limit is used (tile detail, Why, settings, Guide), show: app value · evidence value · match or "differs from evidence" · confidence · "Open source ↗".
