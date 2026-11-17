@@ -66,7 +66,16 @@ localStorage keys: `vpc5_in`, `vpc_set`, `vpc_curves`.
 - **Not suitable** (slate): ADF continuous + tight SLA, stateless Logic App over 5 min, batch SLA in seconds, one-per-call for big sets. Only the decisive row (ADF traffic shape) sets a platform verdict to Not suitable.
 - **Sizes** ≥ 1,000 B show as KB. **Formulas** sit under each value with inline factors; boundaries are a separate section (cards: "Boundaries for the tag"; Why: Calculation / Boundaries / Other factors).
 - **Middleware design builder** (section after the platform evaluation): "+ Add step", platform then component, blocked choices greyed with the reason. Interpretations made in the build: a Solace topic or an ADF pipeline may start a chain; ADF may end it; queue consumers come from the next step (not asked twice); each processing step says "does the work" or "thin hand-off"; "Retries here" on retry-capable steps. HTTP sender flag: on = the whole message on one worker (memory check on the whole message), off = per record.
-- Test with `python3 /path/test_app.py` style Playwright run: click SVG parts with `dispatch_event('click')`.
+- Test with `python3 tests/test_app.py` and `python3 tests/test_designer.py` (Playwright): click SVG parts with `dispatch_event('click')`.
+
+## 3b. Graphical middleware designer (branch `v7-graphical-builder`, 2026-11-17)
+
+- `main` was reset to the v6 handover commit `14a7a8d`; all work from this chat lives on `v7-graphical-builder`. The live artifact shows v6; the branch build is published to a separate preview artifact.
+- The list builder is gone. Once all six parts are answered, the Middleware node shows **⊕ Design inside**; tapping it keeps the diagram as is and opens a pane beneath the node (dashed connector + zoom shape).
+- Step 1: add platforms left to right (repeats allowed, e.g. BTP → Solace → BTP). Step 2: add components inside each platform box, top to bottom; blocked ones are greyed with the reason (same `mdRule`).
+- Tiles are coloured by verdict; the slowest step carries a "bottleneck" tag; tapping a tile opens its settings and checks; the chain verdict and hand-off pills sit at the bottom.
+- State: `I.mdPlats = [{p, comps:[{c,s}]}]`; `I.chain` is derived (`syncChain()`) and feeds `mdEval`. Code: `renderDesigner()`, `mdReady()`; badge drawn in `draw()`.
+- Next (with Suddha): the following set of instructions after he reviews the visual effect.
 
 ## 3. State in v6 (kept for reference)
 

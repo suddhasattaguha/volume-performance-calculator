@@ -55,49 +55,6 @@ with sync_playwright() as p:
     fmt = page.evaluate("[fmtB(1003),fmtB(999),fmtB(1024*1003),fmtB(5*1048576)]")
     print("fmtB:", fmt); assert fmt[0] == "1 KB" and fmt[1] == "999 B" and fmt[2].endswith("MB")
 
-    # builder
-    page.locator("#mdOpen").click(); page.wait_for_timeout(150)
-    def add(plat, comp, expect_ok=True):
-        page.locator("#mdAdd").click(); page.wait_for_timeout(80)
-        page.locator(f'[data-mpp="{plat}"]').click(); page.wait_for_timeout(80)
-        btn = page.locator(f'[data-mpc="{comp}"]')
-        dis = btn.is_disabled()
-        if not expect_ok:
-            assert dis, f"{comp} should be blocked"
-            print(f"blocked {comp}:", btn.get_attribute("title"))
-            page.locator("#mdCancel").click(); page.wait_for_timeout(80); return
-        assert not dis, f"{comp} should be allowed: {btn.get_attribute('title')}"
-        btn.click(); page.wait_for_timeout(120)
-    add("az", "az_sb", expect_ok=False)      # SB can't be inbound
-    add("az", "az_apim")
-    add("az", "az_sb", expect_ok=False)      # after API: iFlow or Logic App
-    add("btp", "btp_http")
-    add("sol", "sol_topic")
-    add("sol", "sol_queue")
-    add("btp", "btp_aem")
-    md = page.locator("#md").inner_text()
-    print("chain:", page.locator(".chain").inner_text().replace("\n", " "))
-    for k in ["Size caps across hops", "Solace connections", "Bottleneck step", "End-to-end SLA", "Retries"]:
-        assert k in md, k
-    # change a step setting: parallel consumers 4
-    inp = page.locator('[data-mk="procs"][data-mi="4"]')
-    inp.click(); page.keyboard.press("Control+A"); page.keyboard.type("4"); page.keyboard.press("Tab")
-    page.wait_for_timeout(200)
-    print("queue step consumers:", page.locator(".mstep").nth(3).locator(".der").inner_text())
-    print("chain verdict:", page.locator(".mdSum").inner_text())
-    # retries on two layers -> Adapt
-    page.locator('[data-mk="retry"][data-mi="3"]').check(); page.wait_for_timeout(150)
-    page.locator('[data-mk="retry"][data-mi="4"]').check(); page.wait_for_timeout(150)
-    rt = [t for t in page.locator("#md .crow").all_inner_texts() if "Retries" in t]
-    print("retries:", rt[-1][:140].replace("\n", " ")); assert "Adapt" in rt[-1]
-    # outbound rule: remove last step -> chain ends in a queue
-    page.locator('[data-mrm="4"]').click(); page.wait_for_timeout(150)
-    assert "Outbound step" in page.locator("#md").inner_text()
-    print("after removing outbound:", page.locator(".mdSum").inner_text())
-    add("btp", "btp_aem")
-    # persistence
-    page.reload(); page.wait_for_timeout(300)
-    assert page.locator(".mstep").count() == 5, "chain should persist"
     # guide chapter + settings open
     page.locator("#guideBtn").click(); page.wait_for_timeout(150)
     page.locator('[data-ch="builder"]').click(); page.wait_for_timeout(100)
@@ -109,7 +66,6 @@ with sync_playwright() as p:
     assert page.locator("#s_rho4").count() == 1 and page.locator("#s_ciNodes").count() == 1
     page.locator("#setClose").click()
     page.screenshot(path="/tmp/shot_full.png", full_page=True)
-    page.locator("#mdBox").screenshot(path="/tmp/shot_builder.png")
     b.close()
 
 print("ERRORS:", errs if errs else "none")
