@@ -8,7 +8,7 @@ Part of the *Interface Workload Envelope Framework*.
 
 | Path | What |
 |---|---|
-| `app/index.html` | The calculator (v6): flow inputs, scale tags, platform verdicts, workload profile, Guide panel |
+| `app/index.html` | The calculator (v7): flow inputs, scale tags, platform verdicts, middleware design builder, workload profile, Guide panel |
 | `app/concepts.html` | Concepts presentation (15 slides), opened from the app |
 | `app/evaluator-v0.3/` | Detailed technical evaluator for architects |
 | `src/` | Source parts: `body.part` (markup + script), `style.part`, `guide.part`, `head-template.html` |

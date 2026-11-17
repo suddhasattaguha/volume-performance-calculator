@@ -1,7 +1,7 @@
 # CLAUDE.md — handover for the Volume & Performance Calculator
 
 Owner: **Suddha**, an integration solution architect working on SAP BTP / hybrid iPaaS, with S/4HANA RISE Private Cloud. This repo belongs to the claude.ai Project "Integration Design for Performance and Volume".
-Handover written 2026-11-17, after v6 was published.
+Handover written 2026-11-17, updated after v7 was published.
 
 ## 1. Working rules (follow strictly)
 
@@ -36,7 +36,7 @@ Handover written 2026-11-17, after v6 was published.
 4. Publish to claude.ai.
 5. Commit and push.
 
-**Publish:** claude.ai artifact slug `efc5f6ae-ebb6-4b23-8f72-ef60982cb926` (https://claude.ai/artifact/WcH5iqktGPe5LvMJroy1xq). Use `publish_files` with files `index.html` ← `app/index.html` and `concepts.html` ← `app/concepts.html`, plus `slug` and `base_version`. The latest version is `1794947862-03b5`; call `get_artifact` first to confirm it.
+**Publish:** claude.ai artifact slug `efc5f6ae-ebb6-4b23-8f72-ef60982cb926` (https://claude.ai/artifact/WcH5iqktGPe5LvMJroy1xq). Use `publish_files` with files `index.html` ← `app/index.html` and `concepts.html` ← `app/concepts.html`, plus `slug` and `base_version`. The latest version is `1794950353-02d4` (v7); call `get_artifact` first to confirm it.
 
 **Code landmarks in body.part:**
 - `SET_DEF`: settings groups as `[key, label, unit, default, conf]`
@@ -52,10 +52,24 @@ Handover written 2026-11-17, after v6 was published.
 - `G_CH`: Guide chapters
 - `G_REV`: research-vs-settings review table
 - `openDeck()`: opens the deck overlay
+- `fxRender()` / `whyHTML()` / `restTbl()`: formulas; `{key}` in a formula renders as an inline factor input (this run only). Formula text = calculation `§` boundaries
+- `rhoT()`: utilisation target by pool size (Fit rule); `capCk` / `rateCk` / `sizeCk` / `backlogCk`: checks; `rollZ()` / `worstZ()`: verdict roll-up
+- `valBox()` / `sizeFormulas()`: card values with the formula directly under them
+- Builder: `SOLC` (Solace classes), `MCOMP` (catalogue), `mdRule()` (positional rules), `mdEval()` (steps + hand-offs), `mdSet()` (per-step settings), `renderChain()`; state `I.chain`, `I.mdOpen`
 
 localStorage keys: `vpc5_in`, `vpc_set`, `vpc_curves`.
 
-## 3. Current state (v6)
+## 3a. v7 (built 2026-11-17)
+
+- **Research corrections applied** (settings, each with its confidence label): iFlow capacity = `ciProcs` (default 1, JMS default) × `ciNodes` (2, E); HTTP sender `ciHttpCap` 50 (E); JMS transaction budget; Service Bus per MU by entity (6,800 / 5,000 / 1,600) and 1 MB relabelled as the HTTP/batch limit; APIM per tier (1,000 / 2,500 / 4,000) and v2 2 MiB buffer; Logic App = trigger concurrency + actions/s per WS3 ÷ actions per run + storage cap; Function = calls × core multiplier × instances; Solace class table (default E250: 10 MB, 50 GB).
+- **Fit rule**: utilisation target by pool size (65 / 75 / 80 / 87 %), minus 10 points when peak ÷ average > ×3. `comfort` stays for rate and storage checks.
+- **Not suitable** (slate): ADF continuous + tight SLA, stateless Logic App over 5 min, batch SLA in seconds, one-per-call for big sets. Only the decisive row (ADF traffic shape) sets a platform verdict to Not suitable.
+- **Sizes** ≥ 1,000 B show as KB. **Formulas** sit under each value with inline factors; boundaries are a separate section (cards: "Boundaries for the tag"; Why: Calculation / Boundaries / Other factors).
+- **Middleware design builder** (section after the platform evaluation): "+ Add step", platform then component, blocked choices greyed with the reason. Interpretations made in the build: a Solace topic or an ADF pipeline may start a chain; ADF may end it; queue consumers come from the next step (not asked twice); each processing step says "does the work" or "thin hand-off"; "Retries here" on retry-capable steps. HTTP sender flag: on = the whole message on one worker (memory check on the whole message), off = per record.
+- Test with `python3 /path/test_app.py` style Playwright run: click SVG parts with `dispatch_event('click')`.
+
+## 3. State in v6 (kept for reference)
+
 
 **Flow:** Source → Message (shown above the pipe) → Influx → Middleware → Delivery → Target.
 
@@ -76,7 +90,7 @@ localStorage keys: `vpc5_in`, `vpc_set`, `vpc_curves`.
 
 **Header buttons:** 📘 Guide (10 chapters, with search) · 🎞 Concepts · ⚙ Calculation settings.
 
-## 4. NEXT BUILD (approved plan; start when Suddha says "build")
+## 4. v7 BUILD PLAN (done; kept for reference)
 
 ### 4a. Apply the research corrections
 Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value stays editable in settings and keeps its confidence label.
@@ -139,7 +153,7 @@ Apply the "Change" rows in `G_REV` and `docs/…ground-rules.md`. Every value st
 
 **Later (not now):** patterns from Suddha's catalogue (pick one, or let the tool suggest).
 
-### 4d. Still open (ask or measure; don't invent)
+### 4d. Still open (ask or measure; don't invent) — still open after v7
 - AEM adapter parallel-consumer range and the tenant's worker nodes
 - Solace msg/s per class
 - REST delivery point throughput (≈ REST outgoing connections ÷ iFlow response time, E)
