@@ -70,7 +70,7 @@ localStorage keys: `vpc7_in` (inputs, from the 2026-11-17 build; `vpc5_in` was t
 
 ## 3b. Graphical middleware designer (branch `v7-graphical-builder`, 2026-11-17)
 
-- `main` was reset to the v6 handover commit `14a7a8d`; all work from this chat lives on `v7-graphical-builder`. The live artifact shows v6; the branch build is published to a separate preview artifact, slug `9de77e8b-020f-402f-bfef-e0e8803a8469` (https://claude.ai/artifact/LVvbzWXhsHiaA5RsJZhPz8), latest version `1794955551-d5e3`; it declares the `downloads` capability (needed by Print PDF).
+- `main` was reset to the v6 handover commit `14a7a8d`; all work from this chat lives on `v7-graphical-builder`. The live artifact shows v6; the branch build is published to a separate preview artifact, slug `9de77e8b-020f-402f-bfef-e0e8803a8469` (https://claude.ai/artifact/LVvbzWXhsHiaA5RsJZhPz8), latest version `1794956814-1991`; it declares the `downloads` capability (needed by Print PDF).
 - The list builder is gone. Once all six parts are answered, the Middleware node shows **⊕ Design inside**; tapping it keeps the diagram as is and opens a pane beneath the node (dashed connector + zoom shape).
 - Step 1: add platforms left to right (repeats allowed, e.g. BTP → Solace → BTP). Step 2: add components inside each platform box, top to bottom; blocked ones are greyed with the reason (same `mdRule`).
 - Tiles are coloured by verdict; the slowest step carries a "bottleneck" tag; tapping a tile opens its settings and checks; the chain verdict and hand-off pills sit at the bottom.
